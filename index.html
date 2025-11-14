@@ -276,33 +276,60 @@
   }
 
   function showGameOver(){
+  try {
     const gameOverPhrases = [
       "70% girls struggle to play during periods.",
       "Nearly 50% girls say coaches avoid talking about periods.",
       "60% girls worry about period leaks while playing",
     ];
     STATE = 'over';
-    points = Math.floor(distance) + itemCount * ITEM_SCORE;
-    
-    //html += `<div style="font-weight:700;color:black;font-size:16px;margin-bottom:10px">A menstrual health campaign by NoFoulPlay</div>`;
-    //html += `<div style="font-weight:700">Score: ${Math.floor(points)}</div>`;
-    //html += `<div style="margin-top:8px"><input id="pname" placeholder="Name (max 12)" maxlength="12" type="text" style="width:90%;padding:6px" inputmode="text"/></div>`;
-
-    points = Math.floor(distance) + ITEM_SCORE;
+    const finalScore = Math.floor(distance) + Math.floor(points);
     const randomPhrase = gameOverPhrases[Math.floor(Math.random() * gameOverPhrases.length)];
+
     let html = `<div id="menu" style="pointer-events:auto;min-width:300px;text-align:center"><h2>Game Over</h2>`;
     html += `<div style="font-weight:700;color:#333;font-size:16px;margin-top:6px">${randomPhrase}</div>`;
     html += `<div style="margin-top:8px; display:flex; justify-content: center; align-items:center; gap:8px;">
       <div style="font-weight:700; color:red; font-size:16px; margin-bottom:0; padding-right:8px">Red is Routine</div>
-      <img src="Logo_Red_Is_Routine.png" alt="Red is routine" style="width:15%; padding-left:8px height:auto;">
+      <img src="Logo_Red_Is_Routine.png" alt="Red is routine" style="width:15%; padding-left:8px; height:auto;">
       </div>`;
     html += `<div style="font-size:14px;color:#444;margin-bottom:8px">"A menstrual health campaign by #NoFoulPlay"</div>`;
-    html += `<div style="font-weight:700;margin-bottom:8px">Score: ${Math.floor(points)}</div>`;
-    html += `<div style="display:flex;gap:8px;justify-content:center;margin-top:8px"><button  style="background-color:#ff7f7f" class="btn" id="again">Play Again</button><button class="btn" id="home" style="background-color:#ff7f7f">Home</button></div></div>`;
+    html += `<div style="font-weight:700;margin-bottom:8px">Score: ${Math.floor(finalScore)}</div>`;
+    html += `<div style="display:flex;gap:8px;justify-content:center;margin-top:8px"><button style="background-color:#ff7f7f" class="btn" id="again">Play Again</button><button class="btn" id="home" style="background-color:#ff7f7f">Home</button></div></div>`;
+
+    // show overlay (inserts HTML and toggles .show)
     showOverlay(html);
-    overlay.querySelector('#again').addEventListener('click', ()=> { hideOverlay(); startGame(); });
-    overlay.querySelector('#home').addEventListener('click', ()=> { hideOverlay(); showMenu(); });
+
+    // safe attachment using document.getElementById
+    try {
+      const again = document.getElementById('again');
+      const home = document.getElementById('home');
+
+      if (again) {
+        again.addEventListener('click', () => {
+          try { hideOverlay(); startGame(); } catch(e){ console.error(e); }
+        }, { once: true });
+      } else console.warn('showGameOver: #again not found');
+
+      if (home) {
+        home.addEventListener('click', () => {
+          try { hideOverlay(); showMenu(); } catch(e){ console.error(e); }
+        }, { once: true });
+      } else console.warn('showGameOver: #home not found');
+    } catch (attachErr) {
+      console.error('showGameOver attach error', attachErr);
+    }
+
+  } catch (err) {
+    console.error('showGameOver fatal error', err);
+    // fallback minimal overlay so user can still recover
+    showOverlay('<div id="menu"><h2>Game Over</h2><div><button class="btn" id="again">Play Again</button></div></div>');
+    setTimeout(()=> {
+      const again = document.getElementById('again');
+      if (again) again.addEventListener('click', ()=> { hideOverlay(); startGame(); }, { once: true });
+    }, 60);
   }
+}
+
 
   // ---------- main loop ----------
   function loop(now){
@@ -396,14 +423,37 @@
 
   function intersectRects(a,b){ return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 
-  // Leaderboard removed per request (no save / name UI)
-
-  // Menu (no leaderboard button)
   function showMenu(){
+  try {
     const html = `<div id="menu" style="pointer-events:auto;text-align:center"><h2 style="margin:6px 0">The Red is Routine Game</h2><div style="font-size:13px;margin-bottom:8px">Tap to jump • Jump to collect points • Avoid obstacles</div><div><button class="btn" id="start" style="background-color:#ff7f7f">Play</button></div></div>`;
     showOverlay(html);
-    overlay.querySelector('#start').addEventListener('click', ()=> { hideOverlay(); startGame(); });
+
+    // attach safely
+    try {
+      const startBtn = document.getElementById('start');
+      if (startBtn) {
+        startBtn.addEventListener('click', ()=> {
+          try { hideOverlay(); startGame(); } catch(e){ console.error(e); }
+        }, { once: true });
+      } else {
+        console.warn('showMenu: #start not found');
+        // last-resort attach after short delay
+        setTimeout(()=> {
+          const s = document.getElementById('start');
+          if (s) s.addEventListener('click', ()=> { hideOverlay(); startGame(); }, { once: true });
+        }, 60);
+      }
+    } catch (attachErr){
+      console.error('showMenu attach error', attachErr);
+    }
+  } catch (err){
+    console.error('showMenu fatal', err);
+    // fallback
+    showOverlay('<div id="menu"><h2>Play</h2><button class="btn" id="start">Start</button></div>');
+    setTimeout(()=> { const st = document.getElementById('start'); if (st) st.addEventListener('click', ()=> { hideOverlay(); startGame(); }); }, 60);
   }
+}
+
 
   // Init
   preload(()=>{ initBg(); showMenu(); renderStatic(); });
