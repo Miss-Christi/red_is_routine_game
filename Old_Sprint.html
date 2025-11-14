@@ -2,533 +2,768 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Pitch Sprint — Prototype</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>The Red is Routine Game</title>
 <style>
-  :root{
-    --bg:#9ad3ff; --ground:#2b8f2b; --text:#0b1a2b;
-    --ui-bg: rgba(255,255,255,0.9);
+  :root {
+  --bg: #bfe9ff;
+  --ground: #1f7a1f;
+  --ui: #fff;
+  --muted: #123;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  color: var(--muted);
+}
+
+#wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(#cdeeff, #a6dbff 60%);
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+canvas {
+  width: 100%;
+  max-width: 900px;
+  height: 56vh;
+  border-radius: 10px;
+  background: transparent;
+  display: block;
+  touch-action: none;
+}
+
+header {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+}
+
+.score {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.small {
+  font-size: 12px;
+  color: #234;
+}
+
+.bigBtn {
+  position: fixed;
+  right: 14px;
+  bottom: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 40px;
+  padding: 14px 18px;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(10, 10, 10, 0.12);
+  z-index: 30;
+}
+
+#overlay {
+  position: relative;
+  max-width: 900px;
+  width: 100%;
+  margin-top: -56vh;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#menu {
+  background: var(--ui);
+  padding: 14px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  text-align: center;
+  pointer-events: auto;
+}
+
+.btn {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f6f6f8;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  margin: 6px;
+}
+
+footer {
+  font-size: 12px;
+  color: #134;
+  margin-top: 8px;
+}
+
+input[type="text"] {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+@media(max-width: 420px) {
+  .bigBtn {
+    padding: 12px 14px;
+    right: 10px;
+    bottom: 12px;
   }
-  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
-  #container{display:flex;flex-direction:column;height:100vh;gap:8px;background:linear-gradient(180deg,var(--bg),#8ad1ff);align-items:center;}
-  header{width:100%;padding:8px 12px;box-sizing:border-box;display:flex;justify-content:space-between;align-items:center}
-  .score{font-weight:700;color:var(--text);font-size:14px}
-  .small{font-size:12px;color:#123}
-  canvas{width:100%;max-width:900px;height:58vh;border-radius:8px;background:transparent;touch-action:none}
-  .controls{display:flex;gap:8px;align-items:center}
-  .btn{background:var(--ui-bg);border-radius:8px;padding:6px 8px;box-shadow:0 1px 3px rgba(0,0,0,0.15);cursor:pointer}
-  .bigBtn{position:absolute;left:50%;transform:translateX(-50%);bottom:28px;background:rgba(255,255,255,0.25);border-radius:40px;padding:18px 28px;font-weight:700}
-  #hud{position:relative;width:100%;max-width:900px}
-  #overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-  #menu{background:var(--ui-bg);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(10,10,10,0.12)}
-  input[type="text"]{padding:6px;border-radius:6px;border:1px solid #ccc}
-  ul{padding-left:18px;margin:6px 0}
-  footer{font-size:12px;color:#034;border-top:1px solid rgba(0,0,0,0.04);padding:6px 8px;width:100%;box-sizing:border-box;text-align:center}
-  @media (max-width:420px){
-    .bigBtn{padding:12px 20px;bottom:14px}
-    canvas{height:52vh}
+
+  canvas {
+    height: 52vh;
   }
+}
+:root {
+  --bg: #bfe9ff;
+  --ground: #1f7a1f;
+  --ui: #fff;
+  --muted: #123;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  color: var(--muted);
+}
+
+#wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(#cdeeff, #a6dbff 60%);
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+canvas {
+  width: 100%;
+  max-width: 900px;
+  height: 56vh;
+  border-radius: 10px;
+  background: transparent;
+  display: block;
+  touch-action: none;
+}
+
+header {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+}
+
+.score {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.small {
+  font-size: 12px;
+  color: #234;
+}
+
+.bigBtn {
+  position: fixed;
+  right: 14px;
+  bottom: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 40px;
+  padding: 14px 18px;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(10, 10, 10, 0.12);
+  z-index: 30;
+}
+
+#overlay {
+  position: relative;
+  max-width: 900px;
+  width: 100%;
+  margin-top: -56vh;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#menu {
+  background: var(--ui);
+  padding: 14px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  text-align: center;
+  pointer-events: auto;
+}
+
+.btn {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f6f6f8;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  margin: 6px;
+}
+
+footer {
+  font-size: 12px;
+  color: #134;
+  margin-top: 8px;
+}
+
+input[type="text"] {
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+@media(max-width: 420px) {
+  .bigBtn {
+    padding: 12px 14px;
+    right: 10px;
+    bottom: 12px;
+  }
+
+  canvas {
+    height: 52vh;
+  }
+}
 </style>
+
 </head>
 <body>
-<div id="container">
+<div id="wrap">
   <header>
-    <div>
-      <div class="score" id="distance">Distance: 0 m</div>
-      <div class="small" id="items">Items: 0</div>
+    <div class="left">
+      <div class="score" id="scoreTxt">Distance: 0 m</div>
+      <div class="small" id="itemsTxt">Items: 0 • Score: 0</div>
     </div>
-    <div class="controls">
-      <div class="btn" id="btnLeaderboard">Leaderboard</div>
-      <div class="btn" id="btnReset">Reset LB</div>
-    </div>
+    <div><!-- header left empty --></div>
   </header>
 
-  <div id="hud">
-    <canvas id="game" tabindex="0"></canvas>
-    <div id="overlay"></div>
-    <button class="bigBtn" id="jumpBtn" aria-label="Jump">JUMP</button>
-  </div>
+  <canvas id="game" tabindex="0"></canvas>
+  <div id="overlay"></div>
 
-  <footer>Tap anywhere to jump • Avoid cramps/leak & kit snags • Collect coins/items • Local leaderboard saved in your browser</footer>
+  <button class="bigBtn" id="jumpBtn">JUMP</button>
+  <footer style="text-align:center;color:white;">Tap anywhere or press JUMP • Jump to collect points. • Avoid annoying obstacles.</footer>
 </div>
 
-<!-- Leaderboard / GameOver Modal injected dynamically -->
 <script>
 (() => {
-  // Canvas setup
+  // ---------- canvas sizing ----------
+  // Set up the game area where everything will be drawn
+// Adjusts size based on the screen size for best view
   const canvas = document.getElementById('game');
-  const overlay = document.getElementById('overlay');
-  const jumpBtn = document.getElementById('jumpBtn');
-  const distEl = document.getElementById('distance');
-  const itemsEl = document.getElementById('items');
-  const btnLeaderboard = document.getElementById('btnLeaderboard');
-  const btnReset = document.getElementById('btnReset');
   const ctx = canvas.getContext('2d');
-
-  // Responsive canvas resolution
-  function resize(){
+  function sizeCanvas(){
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const cssW = Math.min(window.innerWidth, 900);
+    const cssW = Math.min(window.innerWidth - 16, 900);
+    const cssH = Math.round(window.innerHeight * 0.56);
     canvas.style.width = cssW + 'px';
-    canvas.style.height = Math.round(window.innerHeight * 0.58) + 'px';
+    canvas.style.height = cssH + 'px';
     canvas.width = Math.round(cssW * dpr);
-    canvas.height = Math.round((window.innerHeight * 0.58) * dpr);
+    canvas.height = Math.round(cssH * dpr);
     ctx.setTransform(dpr,0,0,dpr,0,0);
   }
-  window.addEventListener('resize', resize);
-  resize();
+  window.addEventListener('resize', sizeCanvas);
+  sizeCanvas();
 
-  // Game constants & state
-  const GROUND_H = 64; // px
-  const GRAVITY = 0.9;
-  const JUMP_V = -16;
-  const BASE_SPEED = 3.2; // world speed px/frame reference
-  const SPEED_INC = 0.0008; // per ms
-  const SPAWN_MIN = 900, SPAWN_MAX = 1600; // ms
-  const COIN_SCORE = 10;
-  const ITEM_SCORE = 25;
-  const MUD_PENALTY = 20;
+  // ---------- game constants ----------
+  // These are fixed numbers used for gameplay like gravity, jump speed, and scoring
+  let STATE = 'menu'; 
+  // menu | playing | hit | over
+  const GRAVITY = 2200;
+  const JUMP_V = -760;
+  const BASE_SPEED = 360;
+  const SPEED_INCREASE = 6;
+  const SPAWN_MIN = 1200, SPAWN_MAX = 1800;
+  const DISTANCE_SCALE = 0.06;       // slowed further
+  const COIN_SCORE = 10, ITEM_SCORE = 25, BALL_SCORE = 40, MUD_PEN = 15;
 
-  let state = 'menu'; // 'menu','playing','over'
-  let lastTime = 0;
-  let worldSpeed = BASE_SPEED;
-  let distance = 0;
-  let items = 0;
-  let score = 0;
+  // ---------- runtime state ----------
+  let lastTime = 0, worldSpeed = 0, spawnAt = 0;
+  let distance = 0, itemCount = 0, points = 0;
 
-  // Pools
+  // player
+  const player = { x: 40, y: 0, w: 66, h: 74, vy: 0, onGround: true, groundY: 0, animTimer:0, runFlip:false };
+
+  // pools
   const obstacles = [];
-  const coins = [];
+  const pickups = [];
 
-  // Basic player
-  const player = {
-    x: 80,
-    y: 0,
-    w: 48,
-    h: 64,
-    vy: 0,
-    isJumping: false,
-    groundY: 0
+  // assets (filenames must be present)
+  const assets = {
+    'girlRun1':'Girl-Running_1_bg.png',
+    'girlRun2':'Girl-Running_2_bg.png',
+    'girlJump':'Girl-Jumping_bg.png',
+    'girlFall':'Girl-Falling_bg.png',
+    'aunty':'Angry_Aunty.png',
+    'shoes':'Old_Shoes_bg.png',
+    'choc':'Chocolate_bg.png',
+    'coin':'Coin_bg.png',
+    'dizzy':'dizzy-emoji_bg.png',
+    'pad':'Pad_bg.png',
+    'stain':'Stain_bg.png',
+    'water':'Water.png',
+    'ball':'Football_bg.png'
   };
-
-  // Background layers (simple rectangles / parallax)
-  const bg = {
-    clouds: [],
-    stands: []
-  };
-
-  // Initialize background layers with simple shapes
-  function initBg() {
-    bg.clouds = [];
-    for (let i=0;i<6;i++) bg.clouds.push({x: Math.random()*canvas.width, y: 20 + Math.random()*40, s: 0.6+Math.random()*0.8});
-    bg.stands = [];
-    for (let i=0;i<8;i++) bg.stands.push({x: i*200, w: 180 + Math.random()*80, h: 40 + Math.random()*40});
+  const imgs = {};
+  let loaded = 0, total = Object.keys(assets).length;
+  function preload(cb){
+    for (const k in assets){
+      const im = new Image();
+      im.src = assets[k];
+      im.onload = ()=>{ imgs[k]=im; loaded++; if (loaded===total) cb(); };
+      im.onerror = ()=>{ loaded++; if (loaded===total) cb(); };
+    }
   }
 
-  // Obstacle types:
-  // type: 'cramp' (fatal), 'kit' (fatal), 'mud' (penalty)
-  function spawnObstacle(x, type) {
-    let o = obstacles.find(o=>!o.active);
-    if (!o) { o = {active:true}; obstacles.push(o); }
-    o.active = true;
-    o.x = x;
-    o.type = type;
-    o.w = (type==='kit'? 36 : (type==='mud'? 48: 44));
-    o.h = (type==='mud'? 22 : 40);
-    o.y = canvas.height/ (window.devicePixelRatio||1) - GROUND_H - o.h;
-    o.passed = false;
-    return o;
+  // ---------- background ----------
+  // Handles drawing sky, clouds, and stadium stands behind the player
+// Gives the feeling of movement when the player runs
+  let clouds = [], stands = [];
+  function initBg(){
+    const W = canvas.width/(window.devicePixelRatio||1);
+    clouds = []; for (let i=0;i<6;i++) clouds.push({x: Math.random()*W, y: 18+Math.random()*50, s: 0.6+Math.random()*0.8});
+    stands = [];
+const standWidth = 220;
+const standHeight = 120;       // consistent height
+for (let i = 0; i < 10; i++) {
+    stands.push({
+        x: i * standWidth,
+        w: standWidth,
+        h: standHeight
+    });
+}
+
+    const H = canvas.height/(window.devicePixelRatio||1);
+    player.groundY = H - 86; // player's top y when on ground
+    player.y = player.groundY; player.vy = 0; player.onGround = true;
   }
 
-  // coin/item types: 'coin','pad','water','choc'
-  function spawnCoin(x, kind, yOffset= -50) {
-    let c = coins.find(c=>!c.active);
-    if (!c) { c = {active:true}; coins.push(c); }
-    c.active = true;
-    c.x = x;
-    c.kind = kind;
-    c.w = 28; c.h = 28;
-    c.y = canvas.height/(window.devicePixelRatio||1) - GROUND_H + yOffset;
-    c.collected = false;
-    return c;
+  // ---------- spawn helpers ----------
+  // Functions to create obstacles and pickups at random positions
+// Makes the game challenging and rewarding
+  function spawnObstacle(type){
+    let o = obstacles.find(x=>!x.active);
+    if (!o) { o = {}; obstacles.push(o); }
+    o.active = true; o.type = type;
+    const base = { 'aunty':[42,56], 'shoes':[45,33], 'stain':[44,36], 'dizzy':[22,22], 'mud':[52,28], 'kit':[54,42], 'cramp':[44,40] };
+    const b = base[type] || [52,40];
+    const scale = (type==='stain'?2.0:1.6); // stain ~2x; others larger
+    o.w = Math.round(b[0] * scale);
+    o.h = Math.round(b[1] * scale);
+    const W = canvas.width/(window.devicePixelRatio||1);
+    // *** align obstacle bottom to player's bottom (so player must jump) ***
+    // player bottom = player.groundY + player.h
+    // place obstacle such that its bottom is slightly above player's bottom by 4 px (so jump required)
+    const footOffset = 4; // how much higher obstacle bottom is than player's bottom (small positive means obstacle slightly above)
+    o.x = W + 30;
+    o.y = (player.groundY + player.h) - o.h - footOffset;
+    // safety clamp
+    const H = canvas.height/(window.devicePixelRatio||1);
+    if (o.y + o.h > H) o.y = H - o.h - 4;
   }
 
-  // reset pools
-  function resetPools(){
-    obstacles.forEach(o=>o.active=false);
-    coins.forEach(c=>c.active=false);
+  function spawnPickup(kind, offsetX=0){
+    let p = pickups.find(x=>!x.active);
+    if (!p) { p = {}; pickups.push(p); }
+    p.active = true; p.kind = kind;
+    const sz = { coin:46, choc:52, pad:48, water:44, ball:44 };
+    const s = sz[kind] || 44;
+    p.w = s; p.h = s;
+    const W = canvas.width/(window.devicePixelRatio||1);
+    p.x = W + 30 + offsetX;
+    p.y = player.groundY - 86 - (Math.random()*18);
+    p.collected = false;
   }
 
-  // spawn manager
-  let spawnTimer = 0;
-  function scheduleNextSpawn(now) {
-    spawnTimer = now + (SPAWN_MIN + Math.random()*(SPAWN_MAX-SPAWN_MIN));
+  function scheduleSpawn(now){ spawnAt = now + (SPAWN_MIN + Math.random()*(SPAWN_MAX-SPAWN_MIN)); }
+
+  // ---------- input ----------
+  function doJump(){ if (STATE !== 'playing') return; if (player.onGround){ player.vy = JUMP_V; player.onGround = false; player.animTimer = 0; } }
+  canvas.addEventListener('pointerdown', e=>{ e.preventDefault(); doJump(); });
+  document.getElementById('jumpBtn').addEventListener('pointerdown', e=>{ e.preventDefault(); doJump(); });
+  window.addEventListener('keydown', e=>{
+    if (e.key===' ' || e.key==='Spacebar'){ if (STATE==='menu') startGame(); doJump(); e.preventDefault(); }
+    if (e.key==='r' && STATE==='over') startGame();
+  });
+
+  // ---------- draw helpers ----------
+  // Draw player, obstacles, pickups, and background on the screen
+// Includes animations like running, jumping, or falling
+  function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function drawBall(ctx,x,y,rad){
+    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,rad,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(x-4,y-2,2.5,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+5,y+1,2.5,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x+1,y-6,2.2,0,Math.PI*2); ctx.fill();
   }
 
-  // Game lifecycle
+  
+  function drawBackground(ctx,W,H,dt,moving){
+    ctx.fillStyle = '#cfefff'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    clouds.forEach(c=>{ if (moving) c.x -= (worldSpeed*0.00028) * (c.s*100) * (dt/16); if (c.x < -120) c.x = W + 60; ctx.beginPath(); ctx.ellipse(c.x, c.y, 34*c.s, 18*c.s, 0,0,Math.PI*2); ctx.fill(); });
+    const standHeight = 120;   // consistent height
+const standY = H - 88;    // ground anchor (touches green)
+
+// Draw stadium stands
+stands.forEach(s => {
+    if (moving) s.x -= (worldSpeed * 0.00045) * (dt/16) * 20;
+    if (s.x < -s.w) s.x = W; // recycle
+
+    const topY = standY - standHeight;
+
+    // --- MAIN STAND BLOCK ---
+    ctx.fillStyle = '#8B4513'; // brown
+    ctx.fillRect(s.x, topY, s.w, standHeight);
+
+    // --- STEPS (diagonal ramps) ---
+    ctx.fillStyle = '#A0522D';
+    const steps = 5;
+    const stepH = standHeight / steps;
+    const stepW = s.w / steps;
+
+    for (let i = 0; i < steps; i++) {
+        ctx.fillRect(
+            s.x + i * stepW,
+            topY + i * stepH,
+            stepW,
+            stepH
+        );
+    }
+
+    // --- SEATS (bigger, clearer) ---
+    ctx.fillStyle = '#A0522D';
+    const seatRows = 3;
+    const seatCols = 6;
+    const seatW = (s.w / seatCols) - 3;
+    const seatH = (standHeight / 8);
+
+    for (let r = 0; r < seatRows; r++) {
+        for (let c = 0; c < seatCols; c++) {
+            ctx.fillRect(
+                s.x + c * (seatW + 3),
+                topY + 10 + r * (seatH + 6),
+                seatW,
+                seatH
+            );
+        }
+    }
+});
+
+
+    //stands.forEach(s=>{ if (moving) s.x -= (worldSpeed*0.00045) * (dt/16) * 20; if (s.x < -220) s.x = W + Math.random()*120; 
+   // ctx.fillStyle = '#1f7a1f'; 
+   // ctx.fillRect(s.x, H - 140 - (s.h/2), s.w, s.h); 
+    //ctx.fillStyle = '#7ef07a'; 
+    //for(let i=0;i<4;i++) ctx.fillRect(s.x + 8 + i*30, H - 140 - (s.h/2) + 8, 6, 6); });
+    ctx.fillStyle = '#117a17'; 
+    ctx.fillRect(0, H - 88, W, 88);
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, H - 54); ctx.lineTo(W, H - 54); ctx.stroke();
+  }
+
+  function drawObstacle(ctx,o){
+    if (!o.active) return;
+    const map = { 'aunty':'aunty','shoes':'shoes','stain':'stain','dizzy':'dizzy','cramp':'stain','kit':'shoes','mud':'shoes' };
+    const key = map[o.type] || o.type;
+    const im = imgs[key];
+    if (im) ctx.drawImage(im, o.x, o.y, o.w, o.h); else { ctx.fillStyle='#7a1b1b'; roundRect(ctx, o.x, o.y, o.w, o.h, 6); ctx.fill(); }
+  }
+
+  function drawPickup(ctx,p){
+    if (!p.active) return;
+    if (p.kind === 'ball'){
+      const im = imgs['ball'];
+      if (im) ctx.drawImage(im, p.x, p.y, p.w, p.h);
+      else drawBall(ctx, p.x + p.w/2, p.y + p.h/2, 12);
+      return;
+    }
+    const map = { coin:'coin', choc:'choc', pad:'pad', water:'water' };
+    const im = imgs[ map[p.kind] || 'coin' ];
+    if (im) ctx.drawImage(im, p.x, p.y, p.w, p.h);
+    else { ctx.fillStyle='#ffd700'; ctx.beginPath(); ctx.arc(p.x + p.w/2, p.y + p.h/2, 12, 0, Math.PI*2); ctx.fill(); }
+  }
+
+  // rotating football infront of the player (static on-scroll)
+  let footballAngle = 0;
+  lastTime = null;
+  function drawRotatingFootball(ctx, now){
+    const centerX = player.x + 54; // slightly ahead of the player
+    const centerY = player.y + player.h - 26;     // around torso/hip area
+    const size = 36;
+    footballAngle = (footballAngle + 0.19) % (Math.PI*2);
+if (imgs['ball']){
+      ctx.save();
+      ctx.translate(centerX + size/2, centerY + size/2);
+      ctx.rotate(footballAngle);
+      ctx.drawImage(imgs['ball'], -size/2, -size/2, size, size);
+      ctx.restore();
+    } else {
+      // drawn ball
+      ctx.save();
+      ctx.translate(centerX + size/2, centerY + size/2);
+      ctx.rotate(footballAngle);
+      drawBall(ctx, 0,0,12);
+      ctx.restore();
+    }
+  }
+
+  // draw player - uses images if available
+  let fallUntil = 0;
+  function drawPlayer(ctx, now){
+    // draw rotating football first (behind the player)
+    drawRotatingFootball(ctx, now);
+
+    const runA = imgs['girlRun1'], runB = imgs['girlRun2'], jump = imgs['girlJump'], fall = imgs['girlFall'];
+    const x = player.x, y = player.y, w = player.w, h = player.h;
+    if (STATE === 'hit'){
+      if (fall) ctx.drawImage(fall, x-8, y-8, w+16, h+16);
+      else { ctx.fillStyle='#ffb3a7'; roundRect(ctx,x,y,w,h,10); ctx.fill(); }
+      return;
+    }
+    if (STATE === 'over' && imgs['girlFall']) { ctx.drawImage(imgs['girlFall'], x-8, y-8, w+16, h+16); return; }
+    if (!player.onGround && jump) { ctx.drawImage(jump, x-8, y-8, w+16, h+16); return; }
+    player.animTimer += 16; if (player.animTimer > 140){ player.runFlip = !player.runFlip; player.animTimer = 0; }
+    if (player.runFlip && runB) ctx.drawImage(runB, x-8, y-6, w+16, h+16);
+    else if (runA) ctx.drawImage(runA, x-8, y-6, w+16, h+16);
+    else { ctx.fillStyle='#1a3b7a'; roundRect(ctx,x,y,w,h,8); ctx.fill(); ctx.fillStyle='#ffdcb6'; ctx.beginPath(); ctx.arc(x+w/2,y-8,10,0,Math.PI*2); ctx.fill(); }
+    // (no coin drawn at foot now if ball used)
+  }
+
+  // ---------- flow ----------
+  // Starts the game, handles player getting hit, and shows Game Over screen
+// Keeps track of score and items collected
   function startGame(){
-    state = 'playing';
+    STATE = 'playing';
     lastTime = performance.now();
     worldSpeed = BASE_SPEED;
-    distance = 0;
-    items = 0;
-    score = 0;
-    resetPools();
-    player.y = canvas.height/(window.devicePixelRatio||1) - GROUND_H - player.h;
-    player.groundY = player.y;
-    player.vy = 0;
-    player.isJumping = false;
+    distance = 0; itemCount = 0; points = 0;
+    obstacles.forEach(o=>o.active=false); pickups.forEach(p=>p.active=false);
     initBg();
-    scheduleNextSpawn(lastTime + 500);
+    scheduleSpawn(lastTime + 600);
     overlay.innerHTML = '';
-    updateHUD();
     requestAnimationFrame(loop);
   }
 
-  function endGame(){
-    state = 'over';
-    // Save score = floor(distance)+items*ITEM_SCORE
-    score = Math.floor(distance) + items*ITEM_SCORE;
-    showGameOver();
+  function triggerHit(now){
+    STATE = 'hit';
+    if (player.onGround) player.vy = 240;
+    player.vy = Math.max(player.vy, 200);
+    player.onGround = false;
+    fallUntil = now + 1500;
+    requestAnimationFrame(loop);
   }
 
-  function updateHUD(){
-    distEl.textContent = `Distance: ${Math.floor(distance)} m`;
-    itemsEl.textContent = `Items: ${items}`;
+  function showGameOver(){
+    const gameOverPhrases = [
+    "70% girls struggle to play during periods.",
+    "Nearly 50% girls say coaches avoid talking about periods.",
+    "60% girls worry about period leaks while playing",
+    ];
+
+    STATE = 'over';
+    points = Math.floor(distance) + itemCount * ITEM_SCORE;
+    const randomPhrase = gameOverPhrases[Math.floor(Math.random() * gameOverPhrases.length)];
+    let html = `<div id="menu" style="pointer-events:auto;min-width:340px;text-align:center"><h2>Game Over</h2>`;
+        html += `<div style="font-weight:700;color:#333;font-size:16px;margin-top:6px">${randomPhrase}</div>`;
+    html += `<div style="margin-top:8px; display:flex; justify-content: center; align-items:center; gap:8px;">
+      <div style="font-weight:700; color:red; font-size:16px; margin-bottom:0;">Red is Routine</div>
+      <img src="Logo_Red_Is_Routine.png" alt="Red is routine" style="width:15%; height:auto;">
+      </div>`;
+    html += `<div style="font-weight:700;color:black;font-size:16px;margin-bottom:10px">A menstrual health campaign by NoFoulPlay</div>`;
+    html += `<div style="font-weight:700">Score: ${Math.floor(points)}</div>`;
+    html += `<div style="margin-top:8px"><input id="pname" placeholder="Name (max 12)" maxlength="12" type="text" style="width:90%;padding:6px"/></div>`;
+    html += `<div style="display:flex;gap:8px;justify-content:center;margin-top:8px"><button class="btn" id="save">Save</button><button class="btn" id="again">Play Again</button><button class="btn" id="home">Home</button></div></div>`;
+    overlay.innerHTML = html;
+    const nameInput = document.getElementById('pname');
+    // make sure input accepts up to 12 chars (enforce on input event)
+    nameInput.addEventListener('input', ()=> { nameInput.value = nameInput.value.slice(0,12); });
+    nameInput.focus();
+    document.getElementById('save').addEventListener('click', async ()=>{
+      const raw = nameInput.value || '';
+      const name = raw.trim().slice(0,12) || 'You';
+      await saveScore(name, points);     // will try Firebase if configured, else localStorage
+      alert('Saved to leaderboard');
+      await showLB();                    // show leaderboard after saving
+    });
+    document.getElementById('again').addEventListener('click', ()=> { overlay.innerHTML=''; startGame(); });
+    document.getElementById('home').addEventListener('click', ()=> { overlay.innerHTML=''; showMenu(); });
   }
 
-  // Input handling (tap to jump) via pointer events
-  function doJump(){
-    if (state!=='playing') return;
-    if (!player.isJumping){
-      player.vy = JUMP_V;
-      player.isJumping = true;
-    }
-  }
-  canvas.addEventListener('pointerdown', (e)=>{
-    e.preventDefault();
-    doJump();
-  });
-  jumpBtn.addEventListener('pointerdown', (e)=>{
-    e.preventDefault();
-    doJump();
-  });
-  // Keyboard fallback
-  window.addEventListener('keydown', e=>{
-    if (e.code==='Space' || e.key===' ') { doJump(); if (state==='menu'){ startGame(); } e.preventDefault(); }
-    if (e.key==='r' && state==='over') { startGame(); }
-  });
-
-  // Collision helpers (AABB)
-  function collide(a,b){
-    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-  }
-
-  // Game loop
+  // ---------- main loop ----------
   function loop(now){
-    if (state !== 'playing') return;
-    const dt = Math.min(40, now - lastTime); // clamp dt
-    lastTime = now;
+    if (!(STATE === 'playing' || STATE === 'hit')) return;
+    const dt = Math.min(40, now - lastTime); lastTime = now;
 
-    // speed up world gradually
-    worldSpeed += SPEED_INC * dt;
+    if (STATE === 'hit'){
+      player.vy += GRAVITY * dt/1000;
+      player.y += player.vy * dt/1000;
+      const H = canvas.height/(window.devicePixelRatio||1);
+      if (player.y >= player.groundY){ player.y = player.groundY; player.vy = 0; player.onGround = true; }
+      const W = canvas.width/(window.devicePixelRatio||1);
+      drawBackground(ctx, W, H, dt, true);
+      obstacles.forEach(o=> drawObstacle(ctx,o));
+      pickups.forEach(p=> drawPickup(ctx,p));
+      drawPlayer(ctx, now);
+      if (now >= fallUntil){ showGameOver(); return; }
+      requestAnimationFrame(loop);
+      return;
+    }
 
-    // update distance (meters) — based on worldSpeed * dt
-    distance += (worldSpeed * dt) * 0.02; // tuning factor; feel free to adjust
-    updateHUD();
+    // playing
+    worldSpeed += (SPEED_INCREASE * dt/1000);
+    distance += (worldSpeed * dt/1000) * DISTANCE_SCALE;
 
-    // Background movement
-    bg.clouds.forEach(c => {
-      c.x -= (worldSpeed*0.4) * (c.s*0.6) * (dt/16);
-      if (c.x < -120) c.x = canvas.width + 60;
-    });
-    bg.stands.forEach(s => {
-      s.x -= (worldSpeed*0.6) * (dt/16);
-      if (s.x < -200) s.x = canvas.width + Math.random()*120;
-    });
+    player.vy += GRAVITY * dt/1000;
+    player.y += player.vy * dt/1000;
+    if (player.y >= player.groundY){ player.y = player.groundY; player.vy = 0; player.onGround = true; }
 
-    // Player physics
-    player.y += player.vy * (dt/16);
-    player.vy += GRAVITY * (dt/16);
-    if (player.y >= player.groundY) { player.y = player.groundY; player.vy = 0; player.isJumping = false; }
-
-    // spawn obstacles/coins
-    if (now >= spawnTimer){
-      const spawnX = canvas.width/(window.devicePixelRatio||1) + 60;
-      // decide pattern: sometimes coins cluster, sometimes obstacle(s)
+    if (now >= spawnAt){
       const r = Math.random();
-      if (r < 0.45) {
-        // spawn 1 obstacle (fatal or mud)
-        const t = Math.random() < 0.7 ? 'cramp' : (Math.random()<0.5?'kit':'mud');
-        spawnObstacle(spawnX, t);
+      if (r < 0.5){
+        const types = ['stain','aunty','shoes','dizzy','mud','kit','cramp'];
+        spawnObstacle(types[Math.floor(Math.random()*types.length)]);
       } else {
-        // spawn coin cluster or item
-        const kinds = ['coin','pad','water','choc'];
+        const kinds = ['coin','choc','pad','water','ball'];
         const k = kinds[Math.floor(Math.random()*kinds.length)];
-        // pattern of 1-3 coins/items
-        const count = 1 + Math.floor(Math.random()*3);
-        for(let i=0;i<count;i++){
-          spawnCoin(spawnX + i*40, k, -50 - i*10);
-        }
+        const count = 1 + Math.floor(Math.random()*2);
+        for (let i=0;i<count;i++) spawnPickup(k, i*36);
       }
-      scheduleNextSpawn(now);
+      scheduleSpawn(now);
     }
 
-    // move & collision for obstacles
-    for (let o of obstacles){
-      if (!o.active) continue;
-      o.x -= worldSpeed * (dt/16) * 10; // convert to px move
-      // recycle offscreen
-      if (o.x + o.w < -20) { o.active = false; continue; }
-      // collision with player
-      if (collide(player, o)){
-        if (o.type === 'mud'){
-          // mud penalty: remove mud and apply score penalty (non-fatal)
-          o.active = false;
-          score = Math.max(0, score - MUD_PENALTY);
-          // small visual feedback - briefly flash canvas background
-          flash(200);
-        } else {
-          // fatal obstacle
-          endGame();
-          return;
-        }
-      }
-    }
-
-    // coins/items movement & collection
-    for (let c of coins){
-      if (!c.active) continue;
-      c.x -= worldSpeed * (dt/16) * 10;
-      if (c.x + c.w < -20) { c.active = false; continue; }
-      if (collide(player, c) && !c.collected){
-        c.collected = true;
-        c.active = false;
-        // scoring
-        if (c.kind === 'coin') score += COIN_SCORE;
-        else score += ITEM_SCORE;
-        items += 1;
-        updateHUD();
-      }
-    }
-
-    // Draw frame
-    render();
-
-    requestAnimationFrame(loop);
-  }
-
-  // small flash effect for mud
-  let flashAlpha = 0;
-  function flash(ms){
-    flashAlpha = 0.9;
-    setTimeout(()=> flashAlpha = 0, ms);
-  }
-
-  // Drawing
-  function render(){
     const W = canvas.width/(window.devicePixelRatio||1);
     const H = canvas.height/(window.devicePixelRatio||1);
 
-    // clear
-    ctx.clearRect(0,0,W,H);
-
-    // background sky (already via body) — draw simple clouds
-    ctx.fillStyle = '#dff6ff';
-    ctx.fillRect(0,0,W,H);
-
-    // parallax clouds
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    for (let c of bg.clouds){
-      ctx.beginPath();
-      ctx.ellipse(c.x, c.y, 34*c.s, 20*c.s, 0,0,Math.PI*2);
-      ctx.fill();
-    }
-
-    // stands / crowd rectangle
-    for (let s of bg.stands){
-      ctx.fillStyle = '#0b5d1a';
-      ctx.fillRect(s.x, H - GROUND_H - s.h, s.w, s.h);
-      // crowd dots
-      ctx.fillStyle = '#7ef07a';
-      for (let i=0;i<4;i++){
-        ctx.fillRect(s.x + 6 + i*30, H - GROUND_H - s.h + 6, 6, 6);
-      }
-    }
-
-    // ground
-    ctx.fillStyle = '#1f7a1f';
-    ctx.fillRect(0, H - GROUND_H, W, GROUND_H);
-
-    // lane markers / pitch lines
-    ctx.strokeStyle = 'rgba(255,255,255,0.14)';
-    ctx.lineWidth = 2;
-    for (let i=1;i<5;i++){
-      const x = (i*(W/6) + (Date.now()%400)/2 ) % W;
-      ctx.beginPath();
-      ctx.moveTo(x, H - GROUND_H + 6);
-      ctx.lineTo(x + 30, H - 6);
-      ctx.stroke();
-    }
-
-    // draw obstacles
-    for (let o of obstacles){
+    for (const o of obstacles){
       if (!o.active) continue;
-      if (o.type === 'cramp'){
-        ctx.fillStyle = '#4a1b1b'; // dark stain
-        ctx.fillRect(o.x, o.y, o.w, o.h);
-        // a small puddle detail
-        ctx.fillStyle = 'rgba(0,0,0,0.25)';
-        ctx.fillRect(o.x + 6, o.y + o.h - 8, o.w - 12, 6);
-      } else if (o.type === 'kit'){
-        ctx.fillStyle = '#b5651d'; // kit snag brown
-        ctx.fillRect(o.x, o.y, o.w, o.h);
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(o.x+6, o.y+6, o.w-12, 6);
-      } else if (o.type === 'mud'){
-        ctx.fillStyle = '#6b3f00';
-        ctx.fillRect(o.x, o.y, o.w, o.h);
-        ctx.fillStyle = '#3a2200';
-        ctx.fillRect(o.x+4, o.y+8, o.w-8, 6);
+      o.x -= worldSpeed * dt/1000;
+      if (o.x + o.w < -120){ o.active = false; continue; }
+      const playerBottom = player.y + player.h - 6;
+      const obstacleTop = o.y;
+      if (intersectRects(player, o)){
+        // allow small vertical margin since sprites have base padding
+        if (playerBottom <= obstacleTop + 8){
+          // jumped over
+        } else {
+          if (o.type === 'mud'){ o.active = false; points = Math.max(0, points - MUD_PEN); }
+          else { triggerHit(now); return; }
+        }
       }
     }
 
-    // coins/items
-    for (let c of coins){
-      if (!c.active) continue;
-      if (c.kind === 'coin'){
-        ctx.fillStyle = '#ffd700';
-        ctx.beginPath();
-        ctx.arc(c.x + c.w/2, c.y + c.h/2, 12, 0, Math.PI*2);
-        ctx.fill();
-        ctx.fillStyle = '#b8860b';
-        ctx.fillRect(c.x + 6, c.y + 12, 6, 6);
-      } else if (c.kind === 'pad'){
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(c.x, c.y, 28, 16);
-        ctx.fillStyle = '#ff8da1';
-        ctx.fillRect(c.x+6, c.y+4, 16, 8);
-      } else if (c.kind === 'water'){
-        ctx.fillStyle = '#4fc3f7';
-        ctx.fillRect(c.x, c.y, 20, 26);
-      } else if (c.kind === 'choc'){
-        ctx.fillStyle = '#5c4033';
-        ctx.fillRect(c.x, c.y, 28, 18);
+    for (const p of pickups){
+      if (!p.active) continue;
+      p.x -= worldSpeed * dt/1000;
+      if (p.x + p.w < -120){ p.active = false; continue; }
+      if (!p.collected && intersectRects(player, p)){
+        p.collected = true; p.active = false;
+        if (p.kind === 'coin') points += COIN_SCORE;
+        else if (p.kind === 'ball') points += BALL_SCORE;
+        else points += ITEM_SCORE;
+        itemCount++;
       }
     }
 
-    // player (left side, slight bob if running)
-    // simple rectangle with head circle
-    ctx.save();
-    const bob = Math.sin(Date.now()/120) * 2;
-    ctx.fillStyle = '#1a3b7a';
-    ctx.fillRect(player.x, player.y + bob, player.w, player.h);
-    ctx.fillStyle = '#ffdbac';
-    ctx.beginPath();
-    ctx.arc(player.x + player.w/2, player.y - 6 + bob, 10, 0, Math.PI*2);
-    ctx.fill();
-    // ball next to player (small)
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(player.x - 12, player.y + player.h - 12 + bob, 10, 0, Math.PI*2);
-    ctx.fill();
-    ctx.restore();
+    drawBackground(ctx, W, H, dt, true);
+    obstacles.forEach(o=> drawObstacle(ctx,o));
+    pickups.forEach(p=> drawPickup(ctx,p));
+    drawPlayer(ctx, now);
 
-    // optional flash overlay
-    if (flashAlpha > 0){
-      ctx.fillStyle = `rgba(255,255,255,${flashAlpha})`;
-      ctx.fillRect(0,0,W,H);
-    }
+    document.getElementById('scoreTxt').textContent = `Distance: ${Math.floor(distance)} m`;
+    document.getElementById('itemsTxt').textContent = `Items: ${itemCount} • Score: ${Math.floor(points)}`;
+
+    requestAnimationFrame(loop);
   }
 
-  // Game over modal + leaderboard logic
-  const LB_KEY = 'pitch_sprint_lb';
-  function getScores(){
-    try { return JSON.parse(localStorage.getItem(LB_KEY) || '[]'); }
-    catch(e){ return []; }
-  }
-  function saveScore(name, score){
-    const arr = getScores();
-    arr.push({name: name || 'You', score: Math.floor(score), date: Date.now()});
-    arr.sort((a,b)=>b.score - a.score);
-    localStorage.setItem(LB_KEY, JSON.stringify(arr.slice(0,10)));
-  }
-  function clearScores(){ localStorage.removeItem(LB_KEY); alert('Leaderboard reset.'); }
+  function intersectRects(a,b){ return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 
-  btnReset.addEventListener('click', ()=>{ clearScores(); });
-
-  function showGameOver(){
-    // render final frame once more
-    render();
-    // create modal HTML
-    overlay.innerHTML = `
-      <div id="menu" style="pointer-events:auto;min-width:260px;text-align:center">
-        <h3 style="margin:6px 0 4px 0">Game Over</h3>
-        <div style="font-weight:700">Score: ${Math.floor(score)}</div>
-        <div style="margin-top:8px">
-          <input id="nameInput" placeholder="Enter name" maxlength="12" style="width:90%;box-sizing:border-box"/>
-        </div>
-        <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
-          <button id="saveBtn" class="btn">Save</button>
-          <button id="replayBtn" class="btn">Play Again</button>
-          <button id="viewLB" class="btn">View LB</button>
-        </div>
-        <div style="margin-top:8px;font-size:12px;color:#333">Distance: ${Math.floor(distance)} m  •  Items: ${items}</div>
-      </div>
-    `;
-    // focus name
-    document.getElementById('nameInput').focus();
-    document.getElementById('saveBtn').addEventListener('click', ()=>{
-      const n = document.getElementById('nameInput').value.trim() || 'You';
-      saveScore(n, score);
-      alert('Saved to local leaderboard');
-      showLeaderboard();
-    });
-    document.getElementById('replayBtn').addEventListener('click', ()=> startGame());
-    document.getElementById('viewLB').addEventListener('click', ()=> showLeaderboard());
+  // ---------- leaderboard (Firebase optional, fallback local) ----------
+  async function saveScore(name, score){
+    // Try Firebase if available
+    try {
+      if (window.firebase && firebase.database){
+        const ref = firebase.database().ref('pitch_sprint_scores');
+        const item = { name, score, date: Date.now() };
+        await ref.push(item);
+        return;
+      }
+    } catch(e){ /* fallback */ }
+    // local fallback
+    try {
+      const KEY = 'pitch_sprint_local_lb';
+      const arr = JSON.parse(localStorage.getItem(KEY) || '[]');
+      arr.push({ name, score, date: Date.now() });
+      arr.sort((a,b)=>b.score-a.score);
+      localStorage.setItem(KEY, JSON.stringify(arr.slice(0,50)));
+    } catch(e){}
   }
 
-  function showLeaderboard(){
-    const arr = getScores();
-    let list = '<ol style="text-align:left;padding-left:18px;margin:6px 0">';
-    if (!arr.length) list += '<li>No scores yet</li>';
-    arr.forEach(s=> list += `<li>${escapeHtml(s.name)} — ${s.score}</li>`);
-    list += '</ol>';
-    overlay.innerHTML = `
-      <div id="menu" style="pointer-events:auto;min-width:260px;text-align:center">
-        <h3 style="margin:6px 0 4px 0">Leaderboard</h3>
-        ${list}
-        <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
-          <button id="playAgain" class="btn">Play</button>
-          <button id="closeLB" class="btn">Close</button>
-        </div>
-      </div>
-    `;
-    document.getElementById('playAgain').addEventListener('click', ()=> startGame());
-    document.getElementById('closeLB').addEventListener('click', ()=> { overlay.innerHTML=''; if (state==='menu'){ /* nothing */ }});
+  async function fetchTopScores(){
+    try {
+      if (window.firebase && firebase.database){
+        const snap = await firebase.database().ref('pitch_sprint_scores').orderByChild('score').limitToLast(10).once('value');
+        const data = snap.val() || {}; return Object.values(data).sort((a,b)=>b.score-a.score);
+      }
+    } catch(e){ /* fallback */ }
+    try { const KEY='pitch_sprint_local_lb'; return JSON.parse(localStorage.getItem(KEY)||'[]').slice(0,10); } catch(e){ return []; }
+  }
+
+  async function showLB(){
+    const arr = await fetchTopScores();
+    let html = '<div id="menu" style="pointer-events:auto;min-width:260px">';
+    html += '<h3>Leaderboard</h3><ol style="text-align:left">';
+    if (!arr.length) html += '<li>No scores yet</li>';
+    arr.forEach(s=> html += `<li>${escapeHtml(s.name)} — ${s.score}</li>`);
+    html += '</ol><div style="display:flex;gap:8px;justify-content:center"><button class="btn" id="play">Play</button><button class="btn" id="home">Home</button></div></div>';
+    overlay.innerHTML = html;
+    document.getElementById('play').addEventListener('click', ()=> { overlay.innerHTML=''; startGame(); });
+    document.getElementById('home').addEventListener('click', ()=> { overlay.innerHTML=''; showMenu(); });
   }
 
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-  btnLeaderboard.addEventListener('click', ()=> showLeaderboard());
+  // ---------- menu ----------
+  function showMenu(){
+    const html = `<div id="menu" style="pointer-events:auto;text-align:center"><h2 style="margin:6px 0">The Red is Routine Game</h2><div style="font-size:13px;margin-bottom:8px">Tap to jump • Jump to collect points. •Avoid annoying obstacles.</div><div><button class="btn" id="start">Play</button><button class="btn" id="lbbtn">Leaderboard</button></div></div>`;
+    overlay.innerHTML = html;
+    document.getElementById('start').addEventListener('click', ()=> { overlay.innerHTML=''; startGame(); });
+    document.getElementById('lbbtn').addEventListener('click', ()=> showLB()); 
+  }
 
-  // initial menu overlay
-  overlay.innerHTML = `
-    <div id="menu" style="pointer-events:auto;">
-      <h2 style="margin:0 0 6px 0">Pitch Sprint</h2>
-      <div style="font-size:13px;margin-bottom:8px">Tap anywhere to jump • Collect items • Avoid cramps/leak & kit snags</div>
-      <div style="display:flex;gap:8px;justify-content:center">
-        <button id="startBtn" class="btn">Play</button>
-        <button id="lbBtn" class="btn">Leaderboard</button>
-      </div>
-    </div>
-  `;
-  document.getElementById('startBtn').addEventListener('click', ()=> startGame());
-  document.getElementById('lbBtn').addEventListener('click', ()=> showLeaderboard());
+  // ---------- init ----------
+  preload(()=>{ initBg(); showMenu(); renderStatic(); });
 
-  // Kick off initial background & minor loop (idle animation)
-  initBg();
-  render();
+  function renderStatic(){
+    const W = canvas.width/(window.devicePixelRatio||1), H = canvas.height/(window.devicePixelRatio||1);
+    drawBackground(ctx,W,H,0,false);
+    if (imgs['girlRun1']) ctx.drawImage(imgs['girlRun1'], player.x-8, player.y-6, player.w+16, player.h+16);
+  }
 
 })();
 </script>
