@@ -5,143 +5,24 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>The Red is Routine Game</title>
 <style>
-  :root {
-  --bg: #bfe9ff;
-  --ground: #1f7a1f;
-  --ui: #fff;
-  --muted: #123;
-}
-
-html,
-body {
-  height: 100%;
-  margin: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-  color: var(--muted);
-}
-
-#wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(#cdeeff, #a6dbff 60%);
-  padding: 8px;
-  box-sizing: border-box;
-}
-
-canvas {
-  width: 100%;
-  max-width: 900px;
-  height: 56vh;
-  border-radius: 10px;
-  background: transparent;
-  display: block;
-  touch-action: none;
-}
-
-header {
-  width: 100%;
-  max-width: 900px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.left {
-  display: flex;
-  flex-direction: column;
-}
-
-.score {
-  font-weight: 700;
-  font-size: 16px;
-}
-
-.small {
-  font-size: 12px;
-  color: #234;
-}
-
-.bigBtn {
-  position: fixed;
-  right: 14px;
-  bottom: 18px;
-  background: rgba(255, 255, 255, 0.96);
-  border-radius: 40px;
-  padding: 14px 18px;
-  font-weight: 700;
-  box-shadow: 0 6px 18px rgba(10, 10, 10, 0.12);
-  z-index: 30;
-}
-
-/* overlay fixed so inputs won't push layout on mobile */
-#overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 60;
-  background: rgba(0,0,0,0.0);
-  transition: background 160ms ease;
-}
-#overlay.show { pointer-events: auto; background: rgba(0,0,0,0.35); }
-#menu { max-width: 92%; box-sizing: border-box; }
-
-#menu {
-  background: var(--ui);
-  padding: 14px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-  text-align: center;
-  pointer-events: auto;
-}
-
-.btn {
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: #f6f6f8;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  cursor: pointer;
-  margin: 6px;
-}
-
-footer {
-  font-size: 12px;
-  color: #134;
-  margin-top: 8px;
-}
-
-input[type="text"] {
-  padding: 6px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-/* mobile-friendly touch sizes */
-@media(max-width: 420px) {
-  .bigBtn {
-    padding: 12px 14px;
-    right: 10px;
-    bottom: 12px;
-  }
-
-  canvas {
-    height: 52vh;
-  }
-
-  #menu { font-size: 16px; padding: 12px; }
-  .btn { padding: 12px 14px; font-size: 15px; }
-  input[type="text"] { font-size: 16px; }
-}
+  :root{--bg:#bfe9ff;--ground:#1f7a1f;--ui:#fff;--muted:#123}
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;color:var(--muted)}
+  #wrap{display:flex;flex-direction:column;align-items:center;min-height:100vh;background:linear-gradient(#cdeeff,#a6dbff 60%);padding:8px;box-sizing:border-box}
+  canvas{width:100%;max-width:900px;height:56vh;border-radius:10px;background:transparent;display:block;touch-action:none}
+  header{width:100%;max-width:900px;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .left{display:flex;flex-direction:column}
+  .score{font-weight:700;font-size:16px}
+  .small{font-size:12px;color:#234}
+  .bigBtn{position:fixed;right:14px;bottom:18px;background:rgba(255,255,255,0.96);border-radius:40px;padding:14px 18px;font-weight:700;box-shadow:0 6px 18px rgba(10,10,10,0.12);z-index:30}
+  /* overlay fixed for stable mobile input */
+  #overlay{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;display:flex;align-items:center;justify-content:center;z-index:60;background:rgba(0,0,0,0);transition:background 160ms ease}
+  #overlay.show{pointer-events:auto;background:rgba(0,0,0,0.35)}
+  #menu{max-width:92%;box-sizing:border-box;background:var(--ui);padding:14px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.12);text-align:center}
+  .btn{padding:8px 10px;border-radius:8px;background:#f6f6f8;border:1px solid rgba(0,0,0,0.06);cursor:pointer;margin:6px}
+  footer{font-size:12px;color:#134;margin-top:8px}
+  input[type="text"]{padding:6px;border-radius:6px;border:1px solid #ccc}
+  @media(max-width:420px){.bigBtn{padding:12px 14px;right:10px;bottom:12px} canvas{height:52vh} #menu{font-size:16px;padding:12px} .btn{padding:12px 14px;font-size:15px} input[type="text"]{font-size:16px}}
 </style>
-
 </head>
 <body>
 <div id="wrap">
@@ -150,29 +31,34 @@ input[type="text"] {
       <div class="score" id="scoreTxt">Distance: 0 m</div>
       <div class="small" id="itemsTxt">Items: 0 • Score: 0</div>
     </div>
-    <div><!-- header left empty --></div>
+    <div></div>
   </header>
 
   <canvas id="game" tabindex="0"></canvas>
   <div id="overlay"></div>
 
   <button class="bigBtn" id="jumpBtn">JUMP</button>
-  <footer style="text-align:center;color:white;">Tap anywhere or press JUMP • Jump to collect points. • Avoid annoying obstacles.</footer>
+  <footer style="text-align:center;color:white">Tap anywhere or press JUMP • Jump to collect points • Avoid obstacles</footer>
 </div>
 
 <script>
 (() => {
-  // ---------- canvas sizing ----------
+  // Elements + context
   const canvas = document.getElementById('game');
   const overlay = document.getElementById('overlay');
   const ctx = canvas.getContext('2d');
 
+  // Global PIXEL RATIO used everywhere to avoid mismatch
+  let PIXEL_RATIO = 1;
+
+  // Size canvas robustly (visualViewport aware) and cap DPR for mobile performance
   function sizeCanvas(){
     const v = window.visualViewport || { width: window.innerWidth, height: window.innerHeight };
     const cssW = Math.min(v.width - 16, 900);
     const cssH = Math.round(v.height * 0.56);
     const rawDpr = window.devicePixelRatio || 1;
-    const dpr = Math.min(rawDpr, 1.2);
+    const dpr = Math.min(rawDpr, 1.2); // cap for mobile
+    PIXEL_RATIO = dpr;
     canvas.style.width = cssW + 'px';
     canvas.style.height = cssH + 'px';
     canvas.width = Math.round(cssW * dpr);
@@ -180,42 +66,37 @@ input[type="text"] {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
   window.addEventListener('resize', sizeCanvas);
-  sizeCanvas();
   if (window.visualViewport) window.visualViewport.addEventListener('resize', sizeCanvas);
+  sizeCanvas();
 
-  // ---------- overlay helpers ----------
+  // Overlay helpers (use these instead of overlay.innerHTML directly)
   function showOverlay(html){
     overlay.innerHTML = html;
     overlay.classList.add('show');
-    // focus first input if exists (small timeout reduces jump on mobile)
     const input = overlay.querySelector('input, textarea');
     if (input) setTimeout(()=> { try{ input.focus(); } catch(e){} }, 70);
   }
   function hideOverlay(){
     overlay.classList.remove('show');
-    // small delay to allow fade if desired
     setTimeout(()=> { overlay.innerHTML = ''; }, 0);
   }
 
-  // ---------- game constants ----------
-  let STATE = 'menu';
-  const GRAVITY = 2200;
-  const JUMP_V = -760;
-  const BASE_SPEED = 360;
-  const SPEED_INCREASE = 6;
+  // Game constants
+  let STATE = 'menu'; // menu | playing | hit | over
+  const GRAVITY = 2200, JUMP_V = -760;
+  const BASE_SPEED = 360, SPEED_INCREASE = 6;
   const SPAWN_MIN = 1200, SPAWN_MAX = 1800;
   const DISTANCE_SCALE = 0.06;
   const COIN_SCORE = 10, ITEM_SCORE = 25, BALL_SCORE = 40, MUD_PEN = 15;
 
-  // ---------- runtime state ----------
+  // Runtime
   let lastTime = 0, worldSpeed = 0, spawnAt = 0;
   let distance = 0, itemCount = 0, points = 0;
 
   const player = { x: 40, y: 0, w: 66, h: 74, vy: 0, onGround: true, groundY: 0, animTimer:0, runFlip:false };
-  const obstacles = [];
-  const pickups = [];
+  const obstacles = [], pickups = [];
 
-  // assets
+  // Assets (keep these next to the HTML)
   const assets = {
     'girlRun1':'Girl-Running_1_bg.png',
     'girlRun2':'Girl-Running_2_bg.png',
@@ -242,21 +123,19 @@ input[type="text"] {
     }
   }
 
-  // ---------- background ----------
+  // Background generation
   let clouds = [], stands = [];
   function initBg(){
-    const W = canvas.width/(window.devicePixelRatio||1);
+    const W = canvas.width / PIXEL_RATIO;
     clouds = []; for (let i=0;i<6;i++) clouds.push({x: Math.random()*W, y: 18+Math.random()*50, s: 0.6+Math.random()*0.8});
     stands = [];
-    const standWidth = 220;
-    const standHeight = 120;
-    for (let i = 0; i < 10; i++) stands.push({ x: i * standWidth, w: standWidth, h: standHeight });
-    const H = canvas.height/(window.devicePixelRatio||1);
-    player.groundY = H - 86;
-    player.y = player.groundY; player.vy = 0; player.onGround = true;
+    const standWidth = 220, standHeight = 120;
+    for (let i=0;i<10;i++) stands.push({ x: i * standWidth, w: standWidth, h: standHeight });
+    const H = canvas.height / PIXEL_RATIO;
+    player.groundY = H - 86; player.y = player.groundY; player.vy = 0; player.onGround = true;
   }
 
-  // ---------- spawn helpers ----------
+  // Spawn helpers
   function spawnObstacle(type){
     let o = obstacles.find(x=>!x.active);
     if (!o) { o = {}; obstacles.push(o); }
@@ -264,13 +143,12 @@ input[type="text"] {
     const base = { 'aunty':[42,56], 'shoes':[45,33], 'stain':[44,36], 'dizzy':[22,22], 'mud':[52,28], 'kit':[54,42], 'cramp':[44,40] };
     const b = base[type] || [52,40];
     const scale = (type==='stain'?2.0:1.6);
-    o.w = Math.round(b[0] * scale);
-    o.h = Math.round(b[1] * scale);
-    const W = canvas.width/(window.devicePixelRatio||1);
+    o.w = Math.round(b[0] * scale); o.h = Math.round(b[1] * scale);
+    const W = canvas.width / PIXEL_RATIO;
     const footOffset = 4;
     o.x = W + 30;
     o.y = (player.groundY + player.h) - o.h - footOffset;
-    const H = canvas.height/(window.devicePixelRatio||1);
+    const H = canvas.height / PIXEL_RATIO;
     if (o.y + o.h > H) o.y = H - o.h - 4;
   }
 
@@ -281,7 +159,7 @@ input[type="text"] {
     const sz = { coin:46, choc:52, pad:48, water:44, ball:44 };
     const s = sz[kind] || 44;
     p.w = s; p.h = s;
-    const W = canvas.width/(window.devicePixelRatio||1);
+    const W = canvas.width / PIXEL_RATIO;
     p.x = W + 30 + offsetX;
     p.y = player.groundY - 86 - (Math.random()*18);
     p.collected = false;
@@ -289,59 +167,46 @@ input[type="text"] {
 
   function scheduleSpawn(now){ spawnAt = now + (SPAWN_MIN + Math.random()*(SPAWN_MAX-SPAWN_MIN)); }
 
-  // ---------- input ----------
+  // Input (use passive:false for touchstart that preventDefault)
   function doJump(){ if (STATE !== 'playing') return; if (player.onGround){ player.vy = JUMP_V; player.onGround = false; player.animTimer = 0; } }
-  // use passive:false for touch handlers that call preventDefault
   canvas.addEventListener('pointerdown', e=>{ e.preventDefault(); doJump(); }, { passive: false });
   document.getElementById('jumpBtn').addEventListener('pointerdown', e=>{ e.preventDefault(); doJump(); }, { passive: false });
   canvas.addEventListener('touchstart', e=>{ e.preventDefault(); doJump(); }, { passive: false });
-  window.addEventListener('keydown', e=>{
-    if (e.key===' ' || e.key==='Spacebar'){ if (STATE==='menu') startGame(); doJump(); e.preventDefault(); }
-    if (e.key==='r' && STATE==='over') startGame();
-  });
+  window.addEventListener('keydown', e=>{ if (e.key===' '||e.key==='Spacebar'){ if (STATE==='menu') startGame(); doJump(); e.preventDefault(); } if (e.key==='r'&&STATE==='over') startGame(); });
 
-  // ---------- draw helpers ----------
+  // Draw helpers
   function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
-  function drawBall(ctx,x,y,rad){
-    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,rad,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(x-4,y-2,2.5,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(x+5,y+1,2.5,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(x+1,y-6,2.2,0,Math.PI*2); ctx.fill();
-  }
+  function drawBall(ctx,x,y,rad){ ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,rad,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(x-4,y-2,2.5,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(x+5,y+1,2.5,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(x+1,y-6,2.2,0,Math.PI*2); ctx.fill(); }
 
   function drawBackground(ctx,W,H,dt,moving){
+    // clear full pixel buffer first to avoid trails
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
     ctx.fillStyle = '#cfefff'; ctx.fillRect(0,0,W,H);
     ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    clouds.forEach(c=>{ if (moving) c.x -= (worldSpeed*0.00028) * (c.s*100) * (dt/16); if (c.x < -120) c.x = W + 60; ctx.beginPath(); ctx.ellipse(c.x, c.y, 34*c.s, 18*c.s, 0,0,Math.PI*2); ctx.fill(); });
+    clouds.forEach(c=>{ if (moving) c.x -= (worldSpeed*0.000002) * (c.s*100) * (dt/16); if (c.x < -120) c.x = W + 60; ctx.beginPath(); ctx.ellipse(c.x, c.y, 34*c.s, 18*c.s, 0,0,Math.PI*2); ctx.fill(); });
+
+    // draw stands (kept simple but full width)
     const standHeight = 120;
-    const standY = H - 88;
-    stands.forEach(s => {
+    const standY = H - 88; // ground anchor
+    for (const s of stands){
       if (moving) s.x -= (worldSpeed * 0.00045) * (dt/16) * 20;
-      if (s.x < -s.w) s.x = W;
+      if (s.x < -s.w) s.x = s.w * (Math.ceil(W / s.w) + 1);
       const topY = standY - standHeight;
-      ctx.fillStyle = '#8B4513';
-      ctx.fillRect(s.x, topY, s.w, standHeight);
+      ctx.fillStyle = '#8B4513'; ctx.fillRect(s.x, topY, s.w, standHeight);
       ctx.fillStyle = '#A0522D';
-      const steps = 5;
-      const stepH = standHeight / steps;
-      const stepW = s.w / steps;
-      for (let i = 0; i < steps; i++) {
-          ctx.fillRect(s.x + i * stepW, topY + i * stepH, stepW, stepH);
-      }
+      const steps = 5; const stepH = standHeight / steps; const stepW = s.w / steps;
+      for (let i=0;i<steps;i++) ctx.fillRect(s.x + i*stepW, topY + i*stepH, stepW, stepH);
       ctx.fillStyle = '#A0522D';
-      const seatRows = 3;
-      const seatCols = 6;
-      const seatW = (s.w / seatCols) - 3;
-      const seatH = (standHeight / 8);
-      for (let r = 0; r < seatRows; r++) {
-          for (let c = 0; c < seatCols; c++) {
-              ctx.fillRect(s.x + c * (seatW + 3), topY + 10 + r * (seatH + 6), seatW, seatH);
-          }
-      }
-    });
+      const seatRows=3, seatCols=6, seatW=(s.w/seatCols)-3, seatH=(standHeight/8);
+      for (let r=0;r<seatRows;r++) for (let c=0;c<seatCols;c++) ctx.fillRect(s.x + c*(seatW+3), topY + 10 + r*(seatH+6), seatW, seatH);
+    }
+
+    // ground (ensure full width by using logical W)
     ctx.fillStyle = '#117a17';
     ctx.fillRect(0, H - 88, W, 88);
-    ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, H - 54); ctx.lineTo(W, H - 54); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, H - 54); ctx.lineTo(W, H - 54); ctx.stroke();
   }
 
   function drawObstacle(ctx,o){
@@ -354,12 +219,7 @@ input[type="text"] {
 
   function drawPickup(ctx,p){
     if (!p.active) return;
-    if (p.kind === 'ball'){
-      const im = imgs['ball'];
-      if (im) ctx.drawImage(im, p.x, p.y, p.w, p.h);
-      else drawBall(ctx, p.x + p.w/2, p.y + p.h/2, 12);
-      return;
-    }
+    if (p.kind === 'ball'){ const im = imgs['ball']; if (im) ctx.drawImage(im, p.x, p.y, p.w, p.h); else drawBall(ctx, p.x + p.w/2, p.y + p.h/2, 12); return; }
     const map = { coin:'coin', choc:'choc', pad:'pad', water:'water' };
     const im = imgs[ map[p.kind] || 'coin' ];
     if (im) ctx.drawImage(im, p.x, p.y, p.w, p.h);
@@ -369,23 +229,13 @@ input[type="text"] {
   // rotating football in front of the player
   let footballAngle = 0;
   function drawRotatingFootball(ctx, now){
-    const centerX = player.x + 54;
-    const centerY = player.y + player.h - 26;
     const size = 36;
     footballAngle = (footballAngle + 0.19) % (Math.PI*2);
+    const centerX = player.x + 54;
+    const centerY = player.y + player.h - 26;
     if (imgs['ball']){
-      ctx.save();
-      ctx.translate(centerX + size/2, centerY + size/2);
-      ctx.rotate(footballAngle);
-      ctx.drawImage(imgs['ball'], -size/2, -size/2, size, size);
-      ctx.restore();
-    } else {
-      ctx.save();
-      ctx.translate(centerX + size/2, centerY + size/2);
-      ctx.rotate(footballAngle);
-      drawBall(ctx, 0,0,12);
-      ctx.restore();
-    }
+      ctx.save(); ctx.translate(centerX + size/2, centerY + size/2); ctx.rotate(footballAngle); ctx.drawImage(imgs['ball'], -size/2, -size/2, size, size); ctx.restore();
+    } else { ctx.save(); ctx.translate(centerX + size/2, centerY + size/2); ctx.rotate(footballAngle); drawBall(ctx, 0,0,12); ctx.restore(); }
   }
 
   // draw player
@@ -394,11 +244,7 @@ input[type="text"] {
     drawRotatingFootball(ctx, now);
     const runA = imgs['girlRun1'], runB = imgs['girlRun2'], jump = imgs['girlJump'], fall = imgs['girlFall'];
     const x = player.x, y = player.y, w = player.w, h = player.h;
-    if (STATE === 'hit'){
-      if (fall) ctx.drawImage(fall, x-8, y-8, w+16, h+16);
-      else { ctx.fillStyle='#ffb3a7'; roundRect(ctx,x,y,w,h,10); ctx.fill(); }
-      return;
-    }
+    if (STATE === 'hit'){ if (fall) ctx.drawImage(fall, x-8, y-8, w+16, h+16); else { ctx.fillStyle='#ffb3a7'; roundRect(ctx,x,y,w,h,10); ctx.fill(); } return; }
     if (STATE === 'over' && imgs['girlFall']) { ctx.drawImage(imgs['girlFall'], x-8, y-8, w+16, h+16); return; }
     if (!player.onGround && jump) { ctx.drawImage(jump, x-8, y-8, w+16, h+16); return; }
     player.animTimer += 16; if (player.animTimer > 140){ player.runFlip = !player.runFlip; player.animTimer = 0; }
@@ -437,32 +283,23 @@ input[type="text"] {
     ];
     STATE = 'over';
     points = Math.floor(distance) + itemCount * ITEM_SCORE;
+    
+    //html += `<div style="font-weight:700;color:black;font-size:16px;margin-bottom:10px">A menstrual health campaign by NoFoulPlay</div>`;
+    //html += `<div style="font-weight:700">Score: ${Math.floor(points)}</div>`;
+    //html += `<div style="margin-top:8px"><input id="pname" placeholder="Name (max 12)" maxlength="12" type="text" style="width:90%;padding:6px" inputmode="text"/></div>`;
+
+    points = Math.floor(distance) + ITEM_SCORE;
     const randomPhrase = gameOverPhrases[Math.floor(Math.random() * gameOverPhrases.length)];
-    let html = `<div id="menu" style="pointer-events:auto;min-width:340px;text-align:center"><h2>Game Over</h2>`;
+    let html = `<div id="menu" style="pointer-events:auto;min-width:300px;text-align:center"><h2>Game Over</h2>`;
     html += `<div style="font-weight:700;color:#333;font-size:16px;margin-top:6px">${randomPhrase}</div>`;
     html += `<div style="margin-top:8px; display:flex; justify-content: center; align-items:center; gap:8px;">
-      <div style="font-weight:700; color:red; font-size:16px; margin-bottom:0;">Red is Routine</div>
-      <img src="Logo_Red_Is_Routine.png" alt="Red is routine" style="width:15%; height:auto;">
+      <div style="font-weight:700; color:red; font-size:16px; margin-bottom:0; padding-right:8px">Red is Routine</div>
+      <img src="Logo_Red_Is_Routine.png" alt="Red is routine" style="width:15%; padding-left:8px height:auto;">
       </div>`;
-    html += `<div style="font-weight:700;color:black;font-size:16px;margin-bottom:10px">A menstrual health campaign by NoFoulPlay</div>`;
-    html += `<div style="font-weight:700">Score: ${Math.floor(points)}</div>`;
-    html += `<div style="margin-top:8px"><input id="pname" placeholder="Name (max 12)" maxlength="12" type="text" style="width:90%;padding:6px" inputmode="text"/></div>`;
-    html += `<div style="display:flex;gap:8px;justify-content:center;margin-top:8px"><button class="btn" id="save">Save</button><button class="btn" id="again">Play Again</button><button class="btn" id="home">Home</button></div></div>`;
+    html += `<div style="font-size:14px;color:#444;margin-bottom:8px">"A menstrual health campaign by #NoFoulPlay"</div>`;
+    html += `<div style="font-weight:700;margin-bottom:8px">Score: ${Math.floor(points)}</div>`;
+    html += `<div style="display:flex;gap:8px;justify-content:center;margin-top:8px"><button  style="background-color:#ff7f7f" class="btn" id="again">Play Again</button><button class="btn" id="home" style="background-color:#ff7f7f">Home</button></div></div>`;
     showOverlay(html);
-
-    const nameInput = overlay.querySelector('#pname');
-    if (nameInput) {
-      nameInput.addEventListener('input', ()=> { nameInput.value = nameInput.value.slice(0,12); });
-    }
-
-    // handlers
-    overlay.querySelector('#save').addEventListener('click', async ()=>{
-      const raw = (overlay.querySelector('#pname') || {value:''}).value || '';
-      const name = raw.trim().slice(0,12) || 'You';
-      await saveScore(name, points);
-      alert('Saved to leaderboard');
-      await showLB();
-    });
     overlay.querySelector('#again').addEventListener('click', ()=> { hideOverlay(); startGame(); });
     overlay.querySelector('#home').addEventListener('click', ()=> { hideOverlay(); showMenu(); });
   }
@@ -476,16 +313,15 @@ input[type="text"] {
       if (STATE === 'hit'){
         player.vy += GRAVITY * dt/1000;
         player.y += player.vy * dt/1000;
-        const H = canvas.height/(window.devicePixelRatio||1);
+        const H = canvas.height / PIXEL_RATIO;
         if (player.y >= player.groundY){ player.y = player.groundY; player.vy = 0; player.onGround = true; }
-        const W = canvas.width/(window.devicePixelRatio||1);
+        const W = canvas.width / PIXEL_RATIO;
         drawBackground(ctx, W, H, dt, true);
         obstacles.forEach(o=> drawObstacle(ctx,o));
         pickups.forEach(p=> drawPickup(ctx,p));
         drawPlayer(ctx, now);
         if (now >= fallUntil){ showGameOver(); return; }
-        requestAnimationFrame(loop);
-        return;
+        requestAnimationFrame(loop); return;
       }
 
       // playing
@@ -510,8 +346,8 @@ input[type="text"] {
         scheduleSpawn(now);
       }
 
-      const W = canvas.width/(window.devicePixelRatio||1);
-      const H = canvas.height/(window.devicePixelRatio||1);
+      const W = canvas.width / PIXEL_RATIO;
+      const H = canvas.height / PIXEL_RATIO;
 
       for (const o of obstacles){
         if (!o.active) continue;
@@ -560,66 +396,23 @@ input[type="text"] {
 
   function intersectRects(a,b){ return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 
-  // ---------- leaderboard (Firebase optional, fallback local) ----------
-  async function saveScore(name, score){
-    try {
-      if (window.firebase && firebase.database){
-        const ref = firebase.database().ref('pitch_sprint_scores');
-        const item = { name, score, date: Date.now() };
-        await ref.push(item);
-        return;
-      }
-    } catch(e){ /* fallback */ }
-    try {
-      const KEY = 'pitch_sprint_local_lb';
-      const arr = JSON.parse(localStorage.getItem(KEY) || '[]');
-      arr.push({ name, score, date: Date.now() });
-      arr.sort((a,b)=>b.score-a.score);
-      localStorage.setItem(KEY, JSON.stringify(arr.slice(0,50)));
-    } catch(e){}
-  }
+  // Leaderboard removed per request (no save / name UI)
 
-  async function fetchTopScores(){
-    try {
-      if (window.firebase && firebase.database){
-        const snap = await firebase.database().ref('pitch_sprint_scores').orderByChild('score').limitToLast(10).once('value');
-        const data = snap.val() || {}; return Object.values(data).sort((a,b)=>b.score-a.score);
-      }
-    } catch(e){ /* fallback */ }
-    try { const KEY='pitch_sprint_local_lb'; return JSON.parse(localStorage.getItem(KEY)||'[]').slice(0,10); } catch(e){ return []; }
-  }
-
-  async function showLB(){
-    const arr = await fetchTopScores();
-    let html = '<div id="menu" style="pointer-events:auto;min-width:260px">';
-    html += '<h3>Leaderboard</h3><ol style="text-align:left">';
-    if (!arr.length) html += '<li>No scores yet</li>';
-    arr.forEach(s=> html += `<li>${escapeHtml(s.name)} — ${s.score}</li>`);
-    html += '</ol><div style="display:flex;gap:8px;justify-content:center"><button class="btn" id="play">Play</button><button class="btn" id="home">Home</button></div></div>';
-    showOverlay(html);
-    overlay.querySelector('#play').addEventListener('click', ()=> { hideOverlay(); startGame(); });
-    overlay.querySelector('#home').addEventListener('click', ()=> { hideOverlay(); showMenu(); });
-  }
-
-  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-  // ---------- menu ----------
+  // Menu (no leaderboard button)
   function showMenu(){
-    const html = `<div id="menu" style="pointer-events:auto;text-align:center"><h2 style="margin:6px 0">The Red is Routine Game</h2><div style="font-size:13px;margin-bottom:8px">Tap to jump • Jump to collect points. •Avoid annoying obstacles.</div><div><button class="btn" id="start">Play</button><button class="btn" id="lbbtn">Leaderboard</button></div></div>`;
+    const html = `<div id="menu" style="pointer-events:auto;text-align:center"><h2 style="margin:6px 0">The Red is Routine Game</h2><div style="font-size:13px;margin-bottom:8px">Tap to jump • Jump to collect points • Avoid obstacles</div><div><button class="btn" id="start" style="background-color:#ff7f7f">Play</button></div></div>`;
     showOverlay(html);
     overlay.querySelector('#start').addEventListener('click', ()=> { hideOverlay(); startGame(); });
-    overlay.querySelector('#lbbtn').addEventListener('click', ()=> showLB());
   }
 
-  // ---------- init ----------
+  // Init
   preload(()=>{ initBg(); showMenu(); renderStatic(); });
 
   function renderStatic(){
-    const W = canvas.width/(window.devicePixelRatio||1), H = canvas.height/(window.devicePixelRatio||1);
+    const W = canvas.width / PIXEL_RATIO, H = canvas.height / PIXEL_RATIO;
     drawBackground(ctx,W,H,0,false);
     if (imgs['girlRun1']) ctx.drawImage(imgs['girlRun1'], player.x-8, player.y-6, player.w+16, player.h+16);
   }
-
 })();
 </script>
 </body>
