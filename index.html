@@ -76,139 +76,23 @@ header {
   z-index: 30;
 }
 
+/* overlay fixed so inputs won't push layout on mobile */
 #overlay {
-  position: relative;
-  max-width: 900px;
-  width: 100%;
-  margin-top: -56vh;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#menu {
-  background: var(--ui);
-  padding: 14px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-  text-align: center;
-  pointer-events: auto;
-}
-
-.btn {
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: #f6f6f8;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  cursor: pointer;
-  margin: 6px;
-}
-
-footer {
-  font-size: 12px;
-  color: #134;
-  margin-top: 8px;
-}
-
-input[type="text"] {
-  padding: 6px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-}
-
-@media(max-width: 420px) {
-  .bigBtn {
-    padding: 12px 14px;
-    right: 10px;
-    bottom: 12px;
-  }
-
-  canvas {
-    height: 52vh;
-  }
-}
-:root {
-  --bg: #bfe9ff;
-  --ground: #1f7a1f;
-  --ui: #fff;
-  --muted: #123;
-}
-
-html,
-body {
-  height: 100%;
-  margin: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
-  color: var(--muted);
-}
-
-#wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(#cdeeff, #a6dbff 60%);
-  padding: 8px;
-  box-sizing: border-box;
-}
-
-canvas {
-  width: 100%;
-  max-width: 900px;
-  height: 56vh;
-  border-radius: 10px;
-  background: transparent;
-  display: block;
-  touch-action: none;
-}
-
-header {
-  width: 100%;
-  max-width: 900px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.left {
-  display: flex;
-  flex-direction: column;
-}
-
-.score {
-  font-weight: 700;
-  font-size: 16px;
-}
-
-.small {
-  font-size: 12px;
-  color: #234;
-}
-
-.bigBtn {
   position: fixed;
-  right: 14px;
-  bottom: 18px;
-  background: rgba(255, 255, 255, 0.96);
-  border-radius: 40px;
-  padding: 14px 18px;
-  font-weight: 700;
-  box-shadow: 0 6px 18px rgba(10, 10, 10, 0.12);
-  z-index: 30;
-}
-
-#overlay {
-  position: relative;
-  max-width: 900px;
-  width: 100%;
-  margin-top: -56vh;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   pointer-events: none;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 60;
+  background: rgba(0,0,0,0.0);
+  transition: background 160ms ease;
 }
+#overlay.show { pointer-events: auto; background: rgba(0,0,0,0.35); }
+#menu { max-width: 92%; box-sizing: border-box; }
 
 #menu {
   background: var(--ui);
@@ -240,6 +124,7 @@ input[type="text"] {
   border: 1px solid #ccc;
 }
 
+/* mobile-friendly touch sizes */
 @media(max-width: 420px) {
   .bigBtn {
     padding: 12px 14px;
@@ -250,6 +135,10 @@ input[type="text"] {
   canvas {
     height: 52vh;
   }
+
+  #menu { font-size: 16px; padding: 12px; }
+  .btn { padding: 12px 14px; font-size: 15px; }
+  input[type="text"] { font-size: 16px; }
 }
 </style>
 
@@ -268,53 +157,65 @@ input[type="text"] {
   <div id="overlay"></div>
 
   <button class="bigBtn" id="jumpBtn">JUMP</button>
-  <footer style="text-align:center;color:white;">Tap anywhere or press JUMP • Jump to collect points. • Avoid annoying obstacles.</footer>
+  <footer style="text-align:center;color:white;">Tap anywhere or press JUMP • Jump to collect points. • Avoid annoying obstacles.</footer>
 </div>
 
 <script>
 (() => {
   // ---------- canvas sizing ----------
-  // Set up the game area where everything will be drawn
-// Adjusts size based on the screen size for best view
   const canvas = document.getElementById('game');
+  const overlay = document.getElementById('overlay');
   const ctx = canvas.getContext('2d');
+
   function sizeCanvas(){
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const cssW = Math.min(window.innerWidth - 16, 900);
-    const cssH = Math.round(window.innerHeight * 0.56);
+    const v = window.visualViewport || { width: window.innerWidth, height: window.innerHeight };
+    const cssW = Math.min(v.width - 16, 900);
+    const cssH = Math.round(v.height * 0.56);
+    const rawDpr = window.devicePixelRatio || 1;
+    const dpr = Math.min(rawDpr, 1.2);
     canvas.style.width = cssW + 'px';
     canvas.style.height = cssH + 'px';
     canvas.width = Math.round(cssW * dpr);
     canvas.height = Math.round(cssH * dpr);
-    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
   window.addEventListener('resize', sizeCanvas);
   sizeCanvas();
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', sizeCanvas);
+
+  // ---------- overlay helpers ----------
+  function showOverlay(html){
+    overlay.innerHTML = html;
+    overlay.classList.add('show');
+    // focus first input if exists (small timeout reduces jump on mobile)
+    const input = overlay.querySelector('input, textarea');
+    if (input) setTimeout(()=> { try{ input.focus(); } catch(e){} }, 70);
+  }
+  function hideOverlay(){
+    overlay.classList.remove('show');
+    // small delay to allow fade if desired
+    setTimeout(()=> { overlay.innerHTML = ''; }, 0);
+  }
 
   // ---------- game constants ----------
-  // These are fixed numbers used for gameplay like gravity, jump speed, and scoring
-  let STATE = 'menu'; 
-  // menu | playing | hit | over
+  let STATE = 'menu';
   const GRAVITY = 2200;
   const JUMP_V = -760;
   const BASE_SPEED = 360;
   const SPEED_INCREASE = 6;
   const SPAWN_MIN = 1200, SPAWN_MAX = 1800;
-  const DISTANCE_SCALE = 0.06;       // slowed further
+  const DISTANCE_SCALE = 0.06;
   const COIN_SCORE = 10, ITEM_SCORE = 25, BALL_SCORE = 40, MUD_PEN = 15;
 
   // ---------- runtime state ----------
   let lastTime = 0, worldSpeed = 0, spawnAt = 0;
   let distance = 0, itemCount = 0, points = 0;
 
-  // player
   const player = { x: 40, y: 0, w: 66, h: 74, vy: 0, onGround: true, groundY: 0, animTimer:0, runFlip:false };
-
-  // pools
   const obstacles = [];
   const pickups = [];
 
-  // assets (filenames must be present)
+  // assets
   const assets = {
     'girlRun1':'Girl-Running_1_bg.png',
     'girlRun2':'Girl-Running_2_bg.png',
@@ -337,53 +238,38 @@ input[type="text"] {
       const im = new Image();
       im.src = assets[k];
       im.onload = ()=>{ imgs[k]=im; loaded++; if (loaded===total) cb(); };
-      im.onerror = ()=>{ loaded++; if (loaded===total) cb(); };
+      im.onerror = ()=>{ console.warn('Missing image', assets[k]); loaded++; if (loaded===total) cb(); };
     }
   }
 
   // ---------- background ----------
-  // Handles drawing sky, clouds, and stadium stands behind the player
-// Gives the feeling of movement when the player runs
   let clouds = [], stands = [];
   function initBg(){
     const W = canvas.width/(window.devicePixelRatio||1);
     clouds = []; for (let i=0;i<6;i++) clouds.push({x: Math.random()*W, y: 18+Math.random()*50, s: 0.6+Math.random()*0.8});
     stands = [];
-const standWidth = 220;
-const standHeight = 120;       // consistent height
-for (let i = 0; i < 10; i++) {
-    stands.push({
-        x: i * standWidth,
-        w: standWidth,
-        h: standHeight
-    });
-}
-
+    const standWidth = 220;
+    const standHeight = 120;
+    for (let i = 0; i < 10; i++) stands.push({ x: i * standWidth, w: standWidth, h: standHeight });
     const H = canvas.height/(window.devicePixelRatio||1);
-    player.groundY = H - 86; // player's top y when on ground
+    player.groundY = H - 86;
     player.y = player.groundY; player.vy = 0; player.onGround = true;
   }
 
   // ---------- spawn helpers ----------
-  // Functions to create obstacles and pickups at random positions
-// Makes the game challenging and rewarding
   function spawnObstacle(type){
     let o = obstacles.find(x=>!x.active);
     if (!o) { o = {}; obstacles.push(o); }
     o.active = true; o.type = type;
     const base = { 'aunty':[42,56], 'shoes':[45,33], 'stain':[44,36], 'dizzy':[22,22], 'mud':[52,28], 'kit':[54,42], 'cramp':[44,40] };
     const b = base[type] || [52,40];
-    const scale = (type==='stain'?2.0:1.6); // stain ~2x; others larger
+    const scale = (type==='stain'?2.0:1.6);
     o.w = Math.round(b[0] * scale);
     o.h = Math.round(b[1] * scale);
     const W = canvas.width/(window.devicePixelRatio||1);
-    // *** align obstacle bottom to player's bottom (so player must jump) ***
-    // player bottom = player.groundY + player.h
-    // place obstacle such that its bottom is slightly above player's bottom by 4 px (so jump required)
-    const footOffset = 4; // how much higher obstacle bottom is than player's bottom (small positive means obstacle slightly above)
+    const footOffset = 4;
     o.x = W + 30;
     o.y = (player.groundY + player.h) - o.h - footOffset;
-    // safety clamp
     const H = canvas.height/(window.devicePixelRatio||1);
     if (o.y + o.h > H) o.y = H - o.h - 4;
   }
@@ -405,16 +291,16 @@ for (let i = 0; i < 10; i++) {
 
   // ---------- input ----------
   function doJump(){ if (STATE !== 'playing') return; if (player.onGround){ player.vy = JUMP_V; player.onGround = false; player.animTimer = 0; } }
-  canvas.addEventListener('pointerdown', e=>{ e.preventDefault(); doJump(); });
-  document.getElementById('jumpBtn').addEventListener('pointerdown', e=>{ e.preventDefault(); doJump(); });
+  // use passive:false for touch handlers that call preventDefault
+  canvas.addEventListener('pointerdown', e=>{ e.preventDefault(); doJump(); }, { passive: false });
+  document.getElementById('jumpBtn').addEventListener('pointerdown', e=>{ e.preventDefault(); doJump(); }, { passive: false });
+  canvas.addEventListener('touchstart', e=>{ e.preventDefault(); doJump(); }, { passive: false });
   window.addEventListener('keydown', e=>{
     if (e.key===' ' || e.key==='Spacebar'){ if (STATE==='menu') startGame(); doJump(); e.preventDefault(); }
     if (e.key==='r' && STATE==='over') startGame();
   });
 
   // ---------- draw helpers ----------
-  // Draw player, obstacles, pickups, and background on the screen
-// Includes animations like running, jumping, or falling
   function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
   function drawBall(ctx,x,y,rad){
     ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,rad,0,Math.PI*2); ctx.fill();
@@ -423,66 +309,37 @@ for (let i = 0; i < 10; i++) {
     ctx.beginPath(); ctx.arc(x+1,y-6,2.2,0,Math.PI*2); ctx.fill();
   }
 
-  
   function drawBackground(ctx,W,H,dt,moving){
     ctx.fillStyle = '#cfefff'; ctx.fillRect(0,0,W,H);
     ctx.fillStyle = 'rgba(255,255,255,0.9)';
     clouds.forEach(c=>{ if (moving) c.x -= (worldSpeed*0.00028) * (c.s*100) * (dt/16); if (c.x < -120) c.x = W + 60; ctx.beginPath(); ctx.ellipse(c.x, c.y, 34*c.s, 18*c.s, 0,0,Math.PI*2); ctx.fill(); });
-    const standHeight = 120;   // consistent height
-const standY = H - 88;    // ground anchor (touches green)
-
-// Draw stadium stands
-stands.forEach(s => {
-    if (moving) s.x -= (worldSpeed * 0.00045) * (dt/16) * 20;
-    if (s.x < -s.w) s.x = W; // recycle
-
-    const topY = standY - standHeight;
-
-    // --- MAIN STAND BLOCK ---
-    ctx.fillStyle = '#8B4513'; // brown
-    ctx.fillRect(s.x, topY, s.w, standHeight);
-
-    // --- STEPS (diagonal ramps) ---
-    ctx.fillStyle = '#A0522D';
-    const steps = 5;
-    const stepH = standHeight / steps;
-    const stepW = s.w / steps;
-
-    for (let i = 0; i < steps; i++) {
-        ctx.fillRect(
-            s.x + i * stepW,
-            topY + i * stepH,
-            stepW,
-            stepH
-        );
-    }
-
-    // --- SEATS (bigger, clearer) ---
-    ctx.fillStyle = '#A0522D';
-    const seatRows = 3;
-    const seatCols = 6;
-    const seatW = (s.w / seatCols) - 3;
-    const seatH = (standHeight / 8);
-
-    for (let r = 0; r < seatRows; r++) {
-        for (let c = 0; c < seatCols; c++) {
-            ctx.fillRect(
-                s.x + c * (seatW + 3),
-                topY + 10 + r * (seatH + 6),
-                seatW,
-                seatH
-            );
-        }
-    }
-});
-
-
-    //stands.forEach(s=>{ if (moving) s.x -= (worldSpeed*0.00045) * (dt/16) * 20; if (s.x < -220) s.x = W + Math.random()*120; 
-   // ctx.fillStyle = '#1f7a1f'; 
-   // ctx.fillRect(s.x, H - 140 - (s.h/2), s.w, s.h); 
-    //ctx.fillStyle = '#7ef07a'; 
-    //for(let i=0;i<4;i++) ctx.fillRect(s.x + 8 + i*30, H - 140 - (s.h/2) + 8, 6, 6); });
-    ctx.fillStyle = '#117a17'; 
+    const standHeight = 120;
+    const standY = H - 88;
+    stands.forEach(s => {
+      if (moving) s.x -= (worldSpeed * 0.00045) * (dt/16) * 20;
+      if (s.x < -s.w) s.x = W;
+      const topY = standY - standHeight;
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(s.x, topY, s.w, standHeight);
+      ctx.fillStyle = '#A0522D';
+      const steps = 5;
+      const stepH = standHeight / steps;
+      const stepW = s.w / steps;
+      for (let i = 0; i < steps; i++) {
+          ctx.fillRect(s.x + i * stepW, topY + i * stepH, stepW, stepH);
+      }
+      ctx.fillStyle = '#A0522D';
+      const seatRows = 3;
+      const seatCols = 6;
+      const seatW = (s.w / seatCols) - 3;
+      const seatH = (standHeight / 8);
+      for (let r = 0; r < seatRows; r++) {
+          for (let c = 0; c < seatCols; c++) {
+              ctx.fillRect(s.x + c * (seatW + 3), topY + 10 + r * (seatH + 6), seatW, seatH);
+          }
+      }
+    });
+    ctx.fillStyle = '#117a17';
     ctx.fillRect(0, H - 88, W, 88);
     ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, H - 54); ctx.lineTo(W, H - 54); ctx.stroke();
   }
@@ -509,22 +366,20 @@ stands.forEach(s => {
     else { ctx.fillStyle='#ffd700'; ctx.beginPath(); ctx.arc(p.x + p.w/2, p.y + p.h/2, 12, 0, Math.PI*2); ctx.fill(); }
   }
 
-  // rotating football infront of the player (static on-scroll)
+  // rotating football in front of the player
   let footballAngle = 0;
-  lastTime = null;
   function drawRotatingFootball(ctx, now){
-    const centerX = player.x + 54; // slightly ahead of the player
-    const centerY = player.y + player.h - 26;     // around torso/hip area
+    const centerX = player.x + 54;
+    const centerY = player.y + player.h - 26;
     const size = 36;
     footballAngle = (footballAngle + 0.19) % (Math.PI*2);
-if (imgs['ball']){
+    if (imgs['ball']){
       ctx.save();
       ctx.translate(centerX + size/2, centerY + size/2);
       ctx.rotate(footballAngle);
       ctx.drawImage(imgs['ball'], -size/2, -size/2, size, size);
       ctx.restore();
     } else {
-      // drawn ball
       ctx.save();
       ctx.translate(centerX + size/2, centerY + size/2);
       ctx.rotate(footballAngle);
@@ -533,12 +388,10 @@ if (imgs['ball']){
     }
   }
 
-  // draw player - uses images if available
+  // draw player
   let fallUntil = 0;
   function drawPlayer(ctx, now){
-    // draw rotating football first (behind the player)
     drawRotatingFootball(ctx, now);
-
     const runA = imgs['girlRun1'], runB = imgs['girlRun2'], jump = imgs['girlJump'], fall = imgs['girlFall'];
     const x = player.x, y = player.y, w = player.w, h = player.h;
     if (STATE === 'hit'){
@@ -552,12 +405,9 @@ if (imgs['ball']){
     if (player.runFlip && runB) ctx.drawImage(runB, x-8, y-6, w+16, h+16);
     else if (runA) ctx.drawImage(runA, x-8, y-6, w+16, h+16);
     else { ctx.fillStyle='#1a3b7a'; roundRect(ctx,x,y,w,h,8); ctx.fill(); ctx.fillStyle='#ffdcb6'; ctx.beginPath(); ctx.arc(x+w/2,y-8,10,0,Math.PI*2); ctx.fill(); }
-    // (no coin drawn at foot now if ball used)
   }
 
   // ---------- flow ----------
-  // Starts the game, handles player getting hit, and shows Game Over screen
-// Keeps track of score and items collected
   function startGame(){
     STATE = 'playing';
     lastTime = performance.now();
@@ -566,7 +416,7 @@ if (imgs['ball']){
     obstacles.forEach(o=>o.active=false); pickups.forEach(p=>p.active=false);
     initBg();
     scheduleSpawn(lastTime + 600);
-    overlay.innerHTML = '';
+    hideOverlay();
     requestAnimationFrame(loop);
   }
 
@@ -581,131 +431,137 @@ if (imgs['ball']){
 
   function showGameOver(){
     const gameOverPhrases = [
-    "70% girls struggle to play during periods.",
-    "Nearly 50% girls say coaches avoid talking about periods.",
-    "60% girls worry about period leaks while playing",
+      "70% girls struggle to play during periods.",
+      "Nearly 50% girls say coaches avoid talking about periods.",
+      "60% girls worry about period leaks while playing",
     ];
-
     STATE = 'over';
     points = Math.floor(distance) + itemCount * ITEM_SCORE;
     const randomPhrase = gameOverPhrases[Math.floor(Math.random() * gameOverPhrases.length)];
     let html = `<div id="menu" style="pointer-events:auto;min-width:340px;text-align:center"><h2>Game Over</h2>`;
-        html += `<div style="font-weight:700;color:#333;font-size:16px;margin-top:6px">${randomPhrase}</div>`;
+    html += `<div style="font-weight:700;color:#333;font-size:16px;margin-top:6px">${randomPhrase}</div>`;
     html += `<div style="margin-top:8px; display:flex; justify-content: center; align-items:center; gap:8px;">
       <div style="font-weight:700; color:red; font-size:16px; margin-bottom:0;">Red is Routine</div>
       <img src="Logo_Red_Is_Routine.png" alt="Red is routine" style="width:15%; height:auto;">
       </div>`;
-    html += `<div style="font-weight:700;color:black;font-size:16px;margin-bottom:10px">A menstrual health campaign by NoFoulPlay</div>`;
+    html += `<div style="font-weight:700;color:black;font-size:16px;margin-bottom:10px">A menstrual health campaign by NoFoulPlay</div>`;
     html += `<div style="font-weight:700">Score: ${Math.floor(points)}</div>`;
-    html += `<div style="margin-top:8px"><input id="pname" placeholder="Name (max 12)" maxlength="12" type="text" style="width:90%;padding:6px"/></div>`;
+    html += `<div style="margin-top:8px"><input id="pname" placeholder="Name (max 12)" maxlength="12" type="text" style="width:90%;padding:6px" inputmode="text"/></div>`;
     html += `<div style="display:flex;gap:8px;justify-content:center;margin-top:8px"><button class="btn" id="save">Save</button><button class="btn" id="again">Play Again</button><button class="btn" id="home">Home</button></div></div>`;
-    overlay.innerHTML = html;
-    const nameInput = document.getElementById('pname');
-    // make sure input accepts up to 12 chars (enforce on input event)
-    nameInput.addEventListener('input', ()=> { nameInput.value = nameInput.value.slice(0,12); });
-    nameInput.focus();
-    document.getElementById('save').addEventListener('click', async ()=>{
-      const raw = nameInput.value || '';
+    showOverlay(html);
+
+    const nameInput = overlay.querySelector('#pname');
+    if (nameInput) {
+      nameInput.addEventListener('input', ()=> { nameInput.value = nameInput.value.slice(0,12); });
+    }
+
+    // handlers
+    overlay.querySelector('#save').addEventListener('click', async ()=>{
+      const raw = (overlay.querySelector('#pname') || {value:''}).value || '';
       const name = raw.trim().slice(0,12) || 'You';
-      await saveScore(name, points);     // will try Firebase if configured, else localStorage
+      await saveScore(name, points);
       alert('Saved to leaderboard');
-      await showLB();                    // show leaderboard after saving
+      await showLB();
     });
-    document.getElementById('again').addEventListener('click', ()=> { overlay.innerHTML=''; startGame(); });
-    document.getElementById('home').addEventListener('click', ()=> { overlay.innerHTML=''; showMenu(); });
+    overlay.querySelector('#again').addEventListener('click', ()=> { hideOverlay(); startGame(); });
+    overlay.querySelector('#home').addEventListener('click', ()=> { hideOverlay(); showMenu(); });
   }
 
   // ---------- main loop ----------
   function loop(now){
-    if (!(STATE === 'playing' || STATE === 'hit')) return;
-    const dt = Math.min(40, now - lastTime); lastTime = now;
+    try {
+      if (!(STATE === 'playing' || STATE === 'hit')) return;
+      const dt = Math.min(40, now - lastTime); lastTime = now;
 
-    if (STATE === 'hit'){
+      if (STATE === 'hit'){
+        player.vy += GRAVITY * dt/1000;
+        player.y += player.vy * dt/1000;
+        const H = canvas.height/(window.devicePixelRatio||1);
+        if (player.y >= player.groundY){ player.y = player.groundY; player.vy = 0; player.onGround = true; }
+        const W = canvas.width/(window.devicePixelRatio||1);
+        drawBackground(ctx, W, H, dt, true);
+        obstacles.forEach(o=> drawObstacle(ctx,o));
+        pickups.forEach(p=> drawPickup(ctx,p));
+        drawPlayer(ctx, now);
+        if (now >= fallUntil){ showGameOver(); return; }
+        requestAnimationFrame(loop);
+        return;
+      }
+
+      // playing
+      worldSpeed += (SPEED_INCREASE * dt/1000);
+      distance += (worldSpeed * dt/1000) * DISTANCE_SCALE;
+
       player.vy += GRAVITY * dt/1000;
       player.y += player.vy * dt/1000;
-      const H = canvas.height/(window.devicePixelRatio||1);
       if (player.y >= player.groundY){ player.y = player.groundY; player.vy = 0; player.onGround = true; }
+
+      if (now >= spawnAt){
+        const r = Math.random();
+        if (r < 0.5){
+          const types = ['stain','aunty','shoes','dizzy','mud','kit','cramp'];
+          spawnObstacle(types[Math.floor(Math.random()*types.length)]);
+        } else {
+          const kinds = ['coin','choc','pad','water','ball'];
+          const k = kinds[Math.floor(Math.random()*kinds.length)];
+          const count = 1 + Math.floor(Math.random()*2);
+          for (let i=0;i<count;i++) spawnPickup(k, i*36);
+        }
+        scheduleSpawn(now);
+      }
+
       const W = canvas.width/(window.devicePixelRatio||1);
+      const H = canvas.height/(window.devicePixelRatio||1);
+
+      for (const o of obstacles){
+        if (!o.active) continue;
+        o.x -= worldSpeed * dt/1000;
+        if (o.x + o.w < -120){ o.active = false; continue; }
+        const playerBottom = player.y + player.h - 6;
+        const obstacleTop = o.y;
+        if (intersectRects(player, o)){
+          if (playerBottom <= obstacleTop + 8){
+            // jumped over
+          } else {
+            if (o.type === 'mud'){ o.active = false; points = Math.max(0, points - MUD_PEN); }
+            else { triggerHit(now); return; }
+          }
+        }
+      }
+
+      for (const p of pickups){
+        if (!p.active) continue;
+        p.x -= worldSpeed * dt/1000;
+        if (p.x + p.w < -120){ p.active = false; continue; }
+        if (!p.collected && intersectRects(player, p)){
+          p.collected = true; p.active = false;
+          if (p.kind === 'coin') points += COIN_SCORE;
+          else if (p.kind === 'ball') points += BALL_SCORE;
+          else points += ITEM_SCORE;
+          itemCount++;
+        }
+      }
+
       drawBackground(ctx, W, H, dt, true);
       obstacles.forEach(o=> drawObstacle(ctx,o));
       pickups.forEach(p=> drawPickup(ctx,p));
       drawPlayer(ctx, now);
-      if (now >= fallUntil){ showGameOver(); return; }
+
+      document.getElementById('scoreTxt').textContent = `Distance: ${Math.floor(distance)} m`;
+      document.getElementById('itemsTxt').textContent = `Items: ${itemCount} • Score: ${Math.floor(points)}`;
+
       requestAnimationFrame(loop);
-      return;
+    } catch (err) {
+      console.error('Game loop error:', err);
+      lastTime = performance.now();
+      requestAnimationFrame(loop);
     }
-
-    // playing
-    worldSpeed += (SPEED_INCREASE * dt/1000);
-    distance += (worldSpeed * dt/1000) * DISTANCE_SCALE;
-
-    player.vy += GRAVITY * dt/1000;
-    player.y += player.vy * dt/1000;
-    if (player.y >= player.groundY){ player.y = player.groundY; player.vy = 0; player.onGround = true; }
-
-    if (now >= spawnAt){
-      const r = Math.random();
-      if (r < 0.5){
-        const types = ['stain','aunty','shoes','dizzy','mud','kit','cramp'];
-        spawnObstacle(types[Math.floor(Math.random()*types.length)]);
-      } else {
-        const kinds = ['coin','choc','pad','water','ball'];
-        const k = kinds[Math.floor(Math.random()*kinds.length)];
-        const count = 1 + Math.floor(Math.random()*2);
-        for (let i=0;i<count;i++) spawnPickup(k, i*36);
-      }
-      scheduleSpawn(now);
-    }
-
-    const W = canvas.width/(window.devicePixelRatio||1);
-    const H = canvas.height/(window.devicePixelRatio||1);
-
-    for (const o of obstacles){
-      if (!o.active) continue;
-      o.x -= worldSpeed * dt/1000;
-      if (o.x + o.w < -120){ o.active = false; continue; }
-      const playerBottom = player.y + player.h - 6;
-      const obstacleTop = o.y;
-      if (intersectRects(player, o)){
-        // allow small vertical margin since sprites have base padding
-        if (playerBottom <= obstacleTop + 8){
-          // jumped over
-        } else {
-          if (o.type === 'mud'){ o.active = false; points = Math.max(0, points - MUD_PEN); }
-          else { triggerHit(now); return; }
-        }
-      }
-    }
-
-    for (const p of pickups){
-      if (!p.active) continue;
-      p.x -= worldSpeed * dt/1000;
-      if (p.x + p.w < -120){ p.active = false; continue; }
-      if (!p.collected && intersectRects(player, p)){
-        p.collected = true; p.active = false;
-        if (p.kind === 'coin') points += COIN_SCORE;
-        else if (p.kind === 'ball') points += BALL_SCORE;
-        else points += ITEM_SCORE;
-        itemCount++;
-      }
-    }
-
-    drawBackground(ctx, W, H, dt, true);
-    obstacles.forEach(o=> drawObstacle(ctx,o));
-    pickups.forEach(p=> drawPickup(ctx,p));
-    drawPlayer(ctx, now);
-
-    document.getElementById('scoreTxt').textContent = `Distance: ${Math.floor(distance)} m`;
-    document.getElementById('itemsTxt').textContent = `Items: ${itemCount} • Score: ${Math.floor(points)}`;
-
-    requestAnimationFrame(loop);
   }
 
   function intersectRects(a,b){ return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 
   // ---------- leaderboard (Firebase optional, fallback local) ----------
   async function saveScore(name, score){
-    // Try Firebase if available
     try {
       if (window.firebase && firebase.database){
         const ref = firebase.database().ref('pitch_sprint_scores');
@@ -714,7 +570,6 @@ if (imgs['ball']){
         return;
       }
     } catch(e){ /* fallback */ }
-    // local fallback
     try {
       const KEY = 'pitch_sprint_local_lb';
       const arr = JSON.parse(localStorage.getItem(KEY) || '[]');
@@ -741,19 +596,19 @@ if (imgs['ball']){
     if (!arr.length) html += '<li>No scores yet</li>';
     arr.forEach(s=> html += `<li>${escapeHtml(s.name)} — ${s.score}</li>`);
     html += '</ol><div style="display:flex;gap:8px;justify-content:center"><button class="btn" id="play">Play</button><button class="btn" id="home">Home</button></div></div>';
-    overlay.innerHTML = html;
-    document.getElementById('play').addEventListener('click', ()=> { overlay.innerHTML=''; startGame(); });
-    document.getElementById('home').addEventListener('click', ()=> { overlay.innerHTML=''; showMenu(); });
+    showOverlay(html);
+    overlay.querySelector('#play').addEventListener('click', ()=> { hideOverlay(); startGame(); });
+    overlay.querySelector('#home').addEventListener('click', ()=> { hideOverlay(); showMenu(); });
   }
 
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   // ---------- menu ----------
   function showMenu(){
-    const html = `<div id="menu" style="pointer-events:auto;text-align:center"><h2 style="margin:6px 0">The Red is Routine Game</h2><div style="font-size:13px;margin-bottom:8px">Tap to jump • Jump to collect points. •Avoid annoying obstacles.</div><div><button class="btn" id="start">Play</button><button class="btn" id="lbbtn">Leaderboard</button></div></div>`;
-    overlay.innerHTML = html;
-    document.getElementById('start').addEventListener('click', ()=> { overlay.innerHTML=''; startGame(); });
-    document.getElementById('lbbtn').addEventListener('click', ()=> showLB()); 
+    const html = `<div id="menu" style="pointer-events:auto;text-align:center"><h2 style="margin:6px 0">The Red is Routine Game</h2><div style="font-size:13px;margin-bottom:8px">Tap to jump • Jump to collect points. •Avoid annoying obstacles.</div><div><button class="btn" id="start">Play</button><button class="btn" id="lbbtn">Leaderboard</button></div></div>`;
+    showOverlay(html);
+    overlay.querySelector('#start').addEventListener('click', ()=> { hideOverlay(); startGame(); });
+    overlay.querySelector('#lbbtn').addEventListener('click', ()=> showLB());
   }
 
   // ---------- init ----------
