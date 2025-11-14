@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Pitch Sprint — Prototype</title>
+<style>
+  :root{
+    --bg:#9ad3ff; --ground:#2b8f2b; --text:#0b1a2b;
+    --ui-bg: rgba(255,255,255,0.9);
+  }
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+  #container{display:flex;flex-direction:column;height:100vh;gap:8px;background:linear-gradient(180deg,var(--bg),#8ad1ff);align-items:center;}
+  header{width:100%;padding:8px 12px;box-sizing:border-box;display:flex;justify-content:space-between;align-items:center}
+  .score{font-weight:700;color:var(--text);font-size:14px}
+  .small{font-size:12px;color:#123}
+  canvas{width:100%;max-width:900px;height:58vh;border-radius:8px;background:transparent;touch-action:none}
+  .controls{display:flex;gap:8px;align-items:center}
+  .btn{background:var(--ui-bg);border-radius:8px;padding:6px 8px;box-shadow:0 1px 3px rgba(0,0,0,0.15);cursor:pointer}
+  .bigBtn{position:absolute;left:50%;transform:translateX(-50%);bottom:28px;background:rgba(255,255,255,0.25);border-radius:40px;padding:18px 28px;font-weight:700}
+  #hud{position:relative;width:100%;max-width:900px}
+  #overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  #menu{background:var(--ui-bg);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(10,10,10,0.12)}
+  input[type="text"]{padding:6px;border-radius:6px;border:1px solid #ccc}
+  ul{padding-left:18px;margin:6px 0}
+  footer{font-size:12px;color:#034;border-top:1px solid rgba(0,0,0,0.04);padding:6px 8px;width:100%;box-sizing:border-box;text-align:center}
+  @media (max-width:420px){
+    .bigBtn{padding:12px 20px;bottom:14px}
+    canvas{height:52vh}
+  }
+</style>
+</head>
+<body>
+<div id="container">
+  <header>
+    <div>
+      <div class="score" id="distance">Distance: 0 m</div>
+      <div class="small" id="items">Items: 0</div>
+    </div>
+    <div class="controls">
+      <div class="btn" id="btnLeaderboard">Leaderboard</div>
+      <div class="btn" id="btnReset">Reset LB</div>
+    </div>
+  </header>
+
+  <div id="hud">
+    <canvas id="game" tabindex="0"></canvas>
+    <div id="overlay"></div>
+    <button class="bigBtn" id="jumpBtn" aria-label="Jump">JUMP</button>
+  </div>
+
+  <footer>Tap anywhere to jump • Avoid cramps/leak & kit snags • Collect coins/items • Local leaderboard saved in your browser</footer>
+</div>
+
+<!-- Leaderboard / GameOver Modal injected dynamically -->
+<script>
+(() => {
+  // Canvas setup
+  const canvas = document.getElementById('game');
+  const overlay = document.getElementById('overlay');
+  const jumpBtn = document.getElementById('jumpBtn');
+  const distEl = document.getElementById('distance');
+  const itemsEl = document.getElementById('items');
+  const btnLeaderboard = document.getElementById('btnLeaderboard');
+  const btnReset = document.getElementById('btnReset');
+  const ctx = canvas.getContext('2d');
+
+  // Responsive canvas resolution
+  function resize(){
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const cssW = Math.min(window.innerWidth, 900);
+    canvas.style.width = cssW + 'px';
+    canvas.style.height = Math.round(window.innerHeight * 0.58) + 'px';
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round((window.innerHeight * 0.58) * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // Game constants & state
+  const GROUND_H = 64; // px
+  const GRAVITY = 0.9;
+  const JUMP_V = -16;
+  const BASE_SPEED = 3.2; // world speed px/frame reference
+  const SPEED_INC = 0.0008; // per ms
+  const SPAWN_MIN = 900, SPAWN_MAX = 1600; // ms
+  const COIN_SCORE = 10;
+  const ITEM_SCORE = 25;
+  const MUD_PENALTY = 20;
+
+  let state = 'menu'; // 'menu','playing','over'
+  let lastTime = 0;
+  let worldSpeed = BASE_SPEED;
+  let distance = 0;
+  let items = 0;
+  let score = 0;
+
+  // Pools
+  const obstacles = [];
+  const coins = [];
+
+  // Basic player
+  const player = {
+    x: 80,
+    y: 0,
+    w: 48,
+    h: 64,
+    vy: 0,
+    isJumping: false,
+    groundY: 0
+  };
+
+  // Background layers (simple rectangles / parallax)
+  const bg = {
+    clouds: [],
+    stands: []
+  };
+
+  // Initialize background layers with simple shapes
+  function initBg() {
+    bg.clouds = [];
+    for (let i=0;i<6;i++) bg.clouds.push({x: Math.random()*canvas.width, y: 20 + Math.random()*40, s: 0.6+Math.random()*0.8});
+    bg.stands = [];
+    for (let i=0;i<8;i++) bg.stands.push({x: i*200, w: 180 + Math.random()*80, h: 40 + Math.random()*40});
+  }
+
+  // Obstacle types:
+  // type: 'cramp' (fatal), 'kit' (fatal), 'mud' (penalty)
+  function spawnObstacle(x, type) {
+    let o = obstacles.find(o=>!o.active);
+    if (!o) { o = {active:true}; obstacles.push(o); }
+    o.active = true;
+    o.x = x;
+    o.type = type;
+    o.w = (type==='kit'? 36 : (type==='mud'? 48: 44));
+    o.h = (type==='mud'? 22 : 40);
+    o.y = canvas.height/ (window.devicePixelRatio||1) - GROUND_H - o.h;
+    o.passed = false;
+    return o;
+  }
+
+  // coin/item types: 'coin','pad','water','choc'
+  function spawnCoin(x, kind, yOffset= -50) {
+    let c = coins.find(c=>!c.active);
+    if (!c) { c = {active:true}; coins.push(c); }
+    c.active = true;
+    c.x = x;
+    c.kind = kind;
+    c.w = 28; c.h = 28;
+    c.y = canvas.height/(window.devicePixelRatio||1) - GROUND_H + yOffset;
+    c.collected = false;
+    return c;
+  }
+
+  // reset pools
+  function resetPools(){
+    obstacles.forEach(o=>o.active=false);
+    coins.forEach(c=>c.active=false);
+  }
+
+  // spawn manager
+  let spawnTimer = 0;
+  function scheduleNextSpawn(now) {
+    spawnTimer = now + (SPAWN_MIN + Math.random()*(SPAWN_MAX-SPAWN_MIN));
+  }
+
+  // Game lifecycle
+  function startGame(){
+    state = 'playing';
+    lastTime = performance.now();
+    worldSpeed = BASE_SPEED;
+    distance = 0;
+    items = 0;
+    score = 0;
+    resetPools();
+    player.y = canvas.height/(window.devicePixelRatio||1) - GROUND_H - player.h;
+    player.groundY = player.y;
+    player.vy = 0;
+    player.isJumping = false;
+    initBg();
+    scheduleNextSpawn(lastTime + 500);
+    overlay.innerHTML = '';
+    updateHUD();
+    requestAnimationFrame(loop);
+  }
+
+  function endGame(){
+    state = 'over';
+    // Save score = floor(distance)+items*ITEM_SCORE
+    score = Math.floor(distance) + items*ITEM_SCORE;
+    showGameOver();
+  }
+
+  function updateHUD(){
+    distEl.textContent = `Distance: ${Math.floor(distance)} m`;
+    itemsEl.textContent = `Items: ${items}`;
+  }
+
+  // Input handling (tap to jump) via pointer events
+  function doJump(){
+    if (state!=='playing') return;
+    if (!player.isJumping){
+      player.vy = JUMP_V;
+      player.isJumping = true;
+    }
+  }
+  canvas.addEventListener('pointerdown', (e)=>{
+    e.preventDefault();
+    doJump();
+  });
+  jumpBtn.addEventListener('pointerdown', (e)=>{
+    e.preventDefault();
+    doJump();
+  });
+  // Keyboard fallback
+  window.addEventListener('keydown', e=>{
+    if (e.code==='Space' || e.key===' ') { doJump(); if (state==='menu'){ startGame(); } e.preventDefault(); }
+    if (e.key==='r' && state==='over') { startGame(); }
+  });
+
+  // Collision helpers (AABB)
+  function collide(a,b){
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  // Game loop
+  function loop(now){
+    if (state !== 'playing') return;
+    const dt = Math.min(40, now - lastTime); // clamp dt
+    lastTime = now;
+
+    // speed up world gradually
+    worldSpeed += SPEED_INC * dt;
+
+    // update distance (meters) — based on worldSpeed * dt
+    distance += (worldSpeed * dt) * 0.02; // tuning factor; feel free to adjust
+    updateHUD();
+
+    // Background movement
+    bg.clouds.forEach(c => {
+      c.x -= (worldSpeed*0.4) * (c.s*0.6) * (dt/16);
+      if (c.x < -120) c.x = canvas.width + 60;
+    });
+    bg.stands.forEach(s => {
+      s.x -= (worldSpeed*0.6) * (dt/16);
+      if (s.x < -200) s.x = canvas.width + Math.random()*120;
+    });
+
+    // Player physics
+    player.y += player.vy * (dt/16);
+    player.vy += GRAVITY * (dt/16);
+    if (player.y >= player.groundY) { player.y = player.groundY; player.vy = 0; player.isJumping = false; }
+
+    // spawn obstacles/coins
+    if (now >= spawnTimer){
+      const spawnX = canvas.width/(window.devicePixelRatio||1) + 60;
+      // decide pattern: sometimes coins cluster, sometimes obstacle(s)
+      const r = Math.random();
+      if (r < 0.45) {
+        // spawn 1 obstacle (fatal or mud)
+        const t = Math.random() < 0.7 ? 'cramp' : (Math.random()<0.5?'kit':'mud');
+        spawnObstacle(spawnX, t);
+      } else {
+        // spawn coin cluster or item
+        const kinds = ['coin','pad','water','choc'];
+        const k = kinds[Math.floor(Math.random()*kinds.length)];
+        // pattern of 1-3 coins/items
+        const count = 1 + Math.floor(Math.random()*3);
+        for(let i=0;i<count;i++){
+          spawnCoin(spawnX + i*40, k, -50 - i*10);
+        }
+      }
+      scheduleNextSpawn(now);
+    }
+
+    // move & collision for obstacles
+    for (let o of obstacles){
+      if (!o.active) continue;
+      o.x -= worldSpeed * (dt/16) * 10; // convert to px move
+      // recycle offscreen
+      if (o.x + o.w < -20) { o.active = false; continue; }
+      // collision with player
+      if (collide(player, o)){
+        if (o.type === 'mud'){
+          // mud penalty: remove mud and apply score penalty (non-fatal)
+          o.active = false;
+          score = Math.max(0, score - MUD_PENALTY);
+          // small visual feedback - briefly flash canvas background
+          flash(200);
+        } else {
+          // fatal obstacle
+          endGame();
+          return;
+        }
+      }
+    }
+
+    // coins/items movement & collection
+    for (let c of coins){
+      if (!c.active) continue;
+      c.x -= worldSpeed * (dt/16) * 10;
+      if (c.x + c.w < -20) { c.active = false; continue; }
+      if (collide(player, c) && !c.collected){
+        c.collected = true;
+        c.active = false;
+        // scoring
+        if (c.kind === 'coin') score += COIN_SCORE;
+        else score += ITEM_SCORE;
+        items += 1;
+        updateHUD();
+      }
+    }
+
+    // Draw frame
+    render();
+
+    requestAnimationFrame(loop);
+  }
+
+  // small flash effect for mud
+  let flashAlpha = 0;
+  function flash(ms){
+    flashAlpha = 0.9;
+    setTimeout(()=> flashAlpha = 0, ms);
+  }
+
+  // Drawing
+  function render(){
+    const W = canvas.width/(window.devicePixelRatio||1);
+    const H = canvas.height/(window.devicePixelRatio||1);
+
+    // clear
+    ctx.clearRect(0,0,W,H);
+
+    // background sky (already via body) — draw simple clouds
+    ctx.fillStyle = '#dff6ff';
+    ctx.fillRect(0,0,W,H);
+
+    // parallax clouds
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    for (let c of bg.clouds){
+      ctx.beginPath();
+      ctx.ellipse(c.x, c.y, 34*c.s, 20*c.s, 0,0,Math.PI*2);
+      ctx.fill();
+    }
+
+    // stands / crowd rectangle
+    for (let s of bg.stands){
+      ctx.fillStyle = '#0b5d1a';
+      ctx.fillRect(s.x, H - GROUND_H - s.h, s.w, s.h);
+      // crowd dots
+      ctx.fillStyle = '#7ef07a';
+      for (let i=0;i<4;i++){
+        ctx.fillRect(s.x + 6 + i*30, H - GROUND_H - s.h + 6, 6, 6);
+      }
+    }
+
+    // ground
+    ctx.fillStyle = '#1f7a1f';
+    ctx.fillRect(0, H - GROUND_H, W, GROUND_H);
+
+    // lane markers / pitch lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+    ctx.lineWidth = 2;
+    for (let i=1;i<5;i++){
+      const x = (i*(W/6) + (Date.now()%400)/2 ) % W;
+      ctx.beginPath();
+      ctx.moveTo(x, H - GROUND_H + 6);
+      ctx.lineTo(x + 30, H - 6);
+      ctx.stroke();
+    }
+
+    // draw obstacles
+    for (let o of obstacles){
+      if (!o.active) continue;
+      if (o.type === 'cramp'){
+        ctx.fillStyle = '#4a1b1b'; // dark stain
+        ctx.fillRect(o.x, o.y, o.w, o.h);
+        // a small puddle detail
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.fillRect(o.x + 6, o.y + o.h - 8, o.w - 12, 6);
+      } else if (o.type === 'kit'){
+        ctx.fillStyle = '#b5651d'; // kit snag brown
+        ctx.fillRect(o.x, o.y, o.w, o.h);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(o.x+6, o.y+6, o.w-12, 6);
+      } else if (o.type === 'mud'){
+        ctx.fillStyle = '#6b3f00';
+        ctx.fillRect(o.x, o.y, o.w, o.h);
+        ctx.fillStyle = '#3a2200';
+        ctx.fillRect(o.x+4, o.y+8, o.w-8, 6);
+      }
+    }
+
+    // coins/items
+    for (let c of coins){
+      if (!c.active) continue;
+      if (c.kind === 'coin'){
+        ctx.fillStyle = '#ffd700';
+        ctx.beginPath();
+        ctx.arc(c.x + c.w/2, c.y + c.h/2, 12, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = '#b8860b';
+        ctx.fillRect(c.x + 6, c.y + 12, 6, 6);
+      } else if (c.kind === 'pad'){
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(c.x, c.y, 28, 16);
+        ctx.fillStyle = '#ff8da1';
+        ctx.fillRect(c.x+6, c.y+4, 16, 8);
+      } else if (c.kind === 'water'){
+        ctx.fillStyle = '#4fc3f7';
+        ctx.fillRect(c.x, c.y, 20, 26);
+      } else if (c.kind === 'choc'){
+        ctx.fillStyle = '#5c4033';
+        ctx.fillRect(c.x, c.y, 28, 18);
+      }
+    }
+
+    // player (left side, slight bob if running)
+    // simple rectangle with head circle
+    ctx.save();
+    const bob = Math.sin(Date.now()/120) * 2;
+    ctx.fillStyle = '#1a3b7a';
+    ctx.fillRect(player.x, player.y + bob, player.w, player.h);
+    ctx.fillStyle = '#ffdbac';
+    ctx.beginPath();
+    ctx.arc(player.x + player.w/2, player.y - 6 + bob, 10, 0, Math.PI*2);
+    ctx.fill();
+    // ball next to player (small)
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(player.x - 12, player.y + player.h - 12 + bob, 10, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    // optional flash overlay
+    if (flashAlpha > 0){
+      ctx.fillStyle = `rgba(255,255,255,${flashAlpha})`;
+      ctx.fillRect(0,0,W,H);
+    }
+  }
+
+  // Game over modal + leaderboard logic
+  const LB_KEY = 'pitch_sprint_lb';
+  function getScores(){
+    try { return JSON.parse(localStorage.getItem(LB_KEY) || '[]'); }
+    catch(e){ return []; }
+  }
+  function saveScore(name, score){
+    const arr = getScores();
+    arr.push({name: name || 'You', score: Math.floor(score), date: Date.now()});
+    arr.sort((a,b)=>b.score - a.score);
+    localStorage.setItem(LB_KEY, JSON.stringify(arr.slice(0,10)));
+  }
+  function clearScores(){ localStorage.removeItem(LB_KEY); alert('Leaderboard reset.'); }
+
+  btnReset.addEventListener('click', ()=>{ clearScores(); });
+
+  function showGameOver(){
+    // render final frame once more
+    render();
+    // create modal HTML
+    overlay.innerHTML = `
+      <div id="menu" style="pointer-events:auto;min-width:260px;text-align:center">
+        <h3 style="margin:6px 0 4px 0">Game Over</h3>
+        <div style="font-weight:700">Score: ${Math.floor(score)}</div>
+        <div style="margin-top:8px">
+          <input id="nameInput" placeholder="Enter name" maxlength="12" style="width:90%;box-sizing:border-box"/>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
+          <button id="saveBtn" class="btn">Save</button>
+          <button id="replayBtn" class="btn">Play Again</button>
+          <button id="viewLB" class="btn">View LB</button>
+        </div>
+        <div style="margin-top:8px;font-size:12px;color:#333">Distance: ${Math.floor(distance)} m  •  Items: ${items}</div>
+      </div>
+    `;
+    // focus name
+    document.getElementById('nameInput').focus();
+    document.getElementById('saveBtn').addEventListener('click', ()=>{
+      const n = document.getElementById('nameInput').value.trim() || 'You';
+      saveScore(n, score);
+      alert('Saved to local leaderboard');
+      showLeaderboard();
+    });
+    document.getElementById('replayBtn').addEventListener('click', ()=> startGame());
+    document.getElementById('viewLB').addEventListener('click', ()=> showLeaderboard());
+  }
+
+  function showLeaderboard(){
+    const arr = getScores();
+    let list = '<ol style="text-align:left;padding-left:18px;margin:6px 0">';
+    if (!arr.length) list += '<li>No scores yet</li>';
+    arr.forEach(s=> list += `<li>${escapeHtml(s.name)} — ${s.score}</li>`);
+    list += '</ol>';
+    overlay.innerHTML = `
+      <div id="menu" style="pointer-events:auto;min-width:260px;text-align:center">
+        <h3 style="margin:6px 0 4px 0">Leaderboard</h3>
+        ${list}
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:8px">
+          <button id="playAgain" class="btn">Play</button>
+          <button id="closeLB" class="btn">Close</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('playAgain').addEventListener('click', ()=> startGame());
+    document.getElementById('closeLB').addEventListener('click', ()=> { overlay.innerHTML=''; if (state==='menu'){ /* nothing */ }});
+  }
+
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  btnLeaderboard.addEventListener('click', ()=> showLeaderboard());
+
+  // initial menu overlay
+  overlay.innerHTML = `
+    <div id="menu" style="pointer-events:auto;">
+      <h2 style="margin:0 0 6px 0">Pitch Sprint</h2>
+      <div style="font-size:13px;margin-bottom:8px">Tap anywhere to jump • Collect items • Avoid cramps/leak & kit snags</div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button id="startBtn" class="btn">Play</button>
+        <button id="lbBtn" class="btn">Leaderboard</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('startBtn').addEventListener('click', ()=> startGame());
+  document.getElementById('lbBtn').addEventListener('click', ()=> showLeaderboard());
+
+  // Kick off initial background & minor loop (idle animation)
+  initBg();
+  render();
+
+})();
+</script>
+</body>
+</html>
